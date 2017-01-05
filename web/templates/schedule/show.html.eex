@@ -1,0 +1,44 @@
+<h2>Show schedule</h2>
+
+<ul>
+
+  <li>
+    <strong>Application:</strong>
+    <%= @schedule.application %>
+  </li>
+
+  <li>
+    <strong>Dyno type:</strong>
+    <%= @schedule.dyno_type %>
+  </li>
+
+  <li>
+    <strong>Rule:</strong>
+    <%= @schedule.rule %>
+  </li>
+
+  <li>
+    <strong>Schedule:</strong>
+    <%= @schedule.schedule %>
+  </li>
+
+  <li>
+    <strong>Schedule method:</strong>
+    <%= @schedule.schedule_method %>
+  </li>
+
+  <li>
+    <strong>Description:</strong>
+    <%= @schedule.description %>
+  </li>
+
+  <li>
+    <strong>State:</strong>
+    <%= @schedule.state %>
+  </li>
+
+</ul>
+
+<%= link "Edit", to: schedule_path(@conn, :edit, @schedule) %>
+
+<%= link "Schedules", to: schedule_path(@conn, :index) %>
