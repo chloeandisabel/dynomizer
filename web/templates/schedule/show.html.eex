@@ -23,11 +23,6 @@
   </li>
 
   <li>
-    <strong>Schedule method:</strong>
-    <%= @schedule.schedule_method %>
-  </li>
-
-  <li>
     <strong>Description:</strong>
     <%= @schedule.description %>
   </li>

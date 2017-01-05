@@ -7,7 +7,6 @@ defmodule Dynomizer.Repo.Migrations.CreateSchedule do
       add :dyno_type, :string, size: 32
       add :rule, :string
       add :schedule, :string
-      add :schedule_method, :string, size: 8
       add :description, :string
       add :state, :string, size: 32
 

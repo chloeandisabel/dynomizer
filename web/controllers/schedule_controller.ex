@@ -9,12 +9,12 @@ defmodule Dynomizer.ScheduleController do
   end
 
   def new(conn, _params) do
-    changeset = Schedule.schedule_changeset(%Schedule{})
+    changeset = Schedule.changeset(%Schedule{})
     render(conn, "new.html", changeset: changeset)
   end
 
   def create(conn, %{"schedule" => schedule_params}) do
-    changeset = Schedule.schedule_changeset(%Schedule{}, schedule_params)
+    changeset = Schedule.changeset(%Schedule{}, schedule_params)
 
     case Repo.insert(changeset) do
       {:ok, _schedule} ->
@@ -33,13 +33,13 @@ defmodule Dynomizer.ScheduleController do
 
   def edit(conn, %{"id" => id}) do
     schedule = Repo.get!(Schedule, id)
-    changeset = Schedule.schedule_changeset(schedule)
+    changeset = Schedule.changeset(schedule)
     render(conn, "edit.html", schedule: schedule, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "schedule" => schedule_params}) do
     schedule = Repo.get!(Schedule, id)
-    changeset = Schedule.schedule_changeset(schedule, schedule_params)
+    changeset = Schedule.changeset(schedule, schedule_params)
 
     case Repo.update(changeset) do
       {:ok, schedule} ->

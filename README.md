@@ -2,8 +2,9 @@
 
 Dynomizer automatically scales Heroku Dynos on schedule. It reads schedules
 from a database using `crontab`- or `at`-like scheduling specifications.
-Dyno counss are increase or decrease by specifying absolute numbers (12, +3,
--5), percentages (+25%, -20%), or multiples or divisors (*2, *0.5x, /2, /3).
+Dyno counts are increased or decreased by specifying absolute numbers (12,
++3, -5), percentages (+25%, -20%), or multiples or divisors (*2, *0.5x, /2,
+/3).
 
 Dynomizer is a [Phoenix](http://www.phoenixframework.org/) application. The
 web interface is used to edit the records in the database and to start and
