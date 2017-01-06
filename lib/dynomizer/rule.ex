@@ -87,7 +87,8 @@ defmodule Dynomizer.Rule do
     cond do
       first_char == "*" || first_char == "/" ->
         sym = if first_char == "*", do: :multiply, else: :divide
-        {sym, unsigned_number(String.slice(rule_str, 1, len-1))}
+        {num, _} = rule_str |> String.slice(1, len-1) |> String.trim |> Float.parse
+        {sym, num}
       last_char == "%" ->
         {sign, number} = signed_number(String.slice(rule_str, 0, len-1))
         {:percent, sign, number}
@@ -111,15 +112,9 @@ defmodule Dynomizer.Rule do
              _ -> nil
            end
     slice_start = if sign?(first_char), do: 1, else: 0
-    {sign, unsigned_number(String.slice(s, slice_start, @max_rule_len))}
-  end
-
-  defp unsigned_number(s) do
-    if String.contains?(s, ".") do
-      s |> String.to_float
-    else
-      (s |> String.to_integer) * 1.0
-    end
+    maxlen = String.length(s)
+    {num, _} = s |> String.slice(slice_start, maxlen) |> Float.parse
+    {sign, num}
   end
 
   def apply_rule({:number, nil, num}, _i) do
