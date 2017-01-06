@@ -19,8 +19,6 @@ defmodule Dynomizer.Rule do
   30% = 91.
   """
 
-  @max_rule_len 255
-
   @doc """
   Given a rule string and an integer, return the result of applying the rule
   to the integer.
