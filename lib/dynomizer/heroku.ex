@@ -3,6 +3,7 @@ defmodule Dynomizer.Heroku do
   Responsible for scaling Heroku dynos.
   """
 
+  require Logger
   alias Dynomizer.Rule
   alias Happi.Heroku.{Dyno, Formation}
 
@@ -11,8 +12,10 @@ defmodule Dynomizer.Heroku do
   """
   def scale(app, dyno_type, rule) do
     client = Happi.api_client(app)
-    new_count = Rule.apply(rule, curr_count(client, dyno_type))
+    curr_count = curr_count(client, dyno_type)
+    new_count = Rule.apply(rule, curr_count)
     formation = client |> Formation.get(dyno_type)
+    Logger.info("scaling #{app} #{dyno_type} using #{rule} from #{curr_count} to #{new_count}")
     client |> Formation.update(%{formation | quantity: new_count})
   end
 
