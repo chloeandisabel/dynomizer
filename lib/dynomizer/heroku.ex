@@ -11,7 +11,7 @@ defmodule Dynomizer.Heroku do
   """
   def scale(app, dyno_type, rule) do
     client = Happi.api_client(app)
-    new_count = Rule.apply(rule, curr_count(client, app, dyno_type))
+    new_count = Rule.apply(rule, curr_count(client, dyno_type))
     formation = client |> Formation.get(dyno_type)
     client |> Formation.update(%{formation | quantity: new_count})
   end
@@ -19,7 +19,7 @@ defmodule Dynomizer.Heroku do
   @doc """
   Return the current number of `dyno_type` dynos of `app`.
   """
-  def curr_count(client, app, dyno_type) do
+  def curr_count(client, dyno_type) do
     client
     |> Dyno.list
     |> Enum.filter(&(&1.type == dyno_type))
