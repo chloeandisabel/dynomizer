@@ -1,11 +1,13 @@
 defmodule Dynomizer.UserSocket do
   use Phoenix.Socket
 
+  @heroku_timeout
+
   ## Channels
   # channel "room:*", Dynomizer.RoomChannel
 
   ## Transports
-  transport :websocket, Phoenix.Transports.WebSocket
+  transport :websocket, Phoenix.Transports.WebSocket, timeout: @heroku_timeout
   # transport :longpoll, Phoenix.Transports.LongPoll
 
   # Socket params are passed from the client and can

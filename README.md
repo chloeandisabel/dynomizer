@@ -12,20 +12,14 @@ stop the scheduler.
 
 # Environment
 
-Dynomizer uses the following environment variables:
+Dynomizer uses the following environment variables. See
+http://www.phoenixframework.org/docs/heroku for setting all but the first of
+these.
 
-For the Heroku API:
-
-- `HEROKU_API_KEY`
-
-For deployment to Heroku:
-
-- `SECRET_KEY_BASE`
-
-For the database:
-
-- `DATABASE_URL`
-- `POOL_SIZE` (optional, defaults to 10)
+- `HEROKU_API_KEY` for the Heroku API
+- `SECRET_KEY_BASE` for app security
+- `POOL_SIZE` for database connections
+- `DATABASE_URL` is set when the database is created
 
 # Usage
 
