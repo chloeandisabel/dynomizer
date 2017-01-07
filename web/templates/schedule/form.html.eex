@@ -30,7 +30,7 @@
   </div>
 
   <div class="form-group">
-    <%= label f, :schedule, class: "control-label" %> (crontab or ISO8601 UTC datetime without offset)
+    <%= label f, :schedule, class: "control-label" %> (crontab <em>or</em> ISO8601 UTC datetime without offset)
     <%= text_input f, :schedule, class: "form-control" %>
     <%= error_tag f, :schedule %>
   </div>

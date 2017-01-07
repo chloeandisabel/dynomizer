@@ -19,7 +19,10 @@
             <li><a href="https://github.com/chloeandisabel/dynomizer">README</a></li>
           </ul>
         </nav>
-        <span class="logo"></span>
+        <span class="logo">
+          <h1>Dynomizer</h1>
+          <p class="lead">Automatically scale Heroku Dynos on schedule</p>
+        </span>
       </header>
 
       <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
