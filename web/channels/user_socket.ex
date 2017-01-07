@@ -1,7 +1,7 @@
 defmodule Dynomizer.UserSocket do
   use Phoenix.Socket
 
-  @heroku_timeout
+  @heroku_timeout 45_000
 
   ## Channels
   # channel "room:*", Dynomizer.RoomChannel
