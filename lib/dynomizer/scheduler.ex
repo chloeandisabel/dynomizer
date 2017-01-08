@@ -60,6 +60,14 @@ defmodule Dynomizer.Scheduler do
     GenServer.call(__MODULE__, :running)
   end
 
+  @doc """
+  Only used for testing, along with a mock Heroku API module. Do NOT bother
+  calling this any other time. It's harmless and you'll get back `nil`.
+  """
+  def scaled do
+    GenServer.call(__MODULE__, :scaled)
+  end
+
   # ================ handlers ================
 
   def handle_call(:refresh, _from, {scaler, running}) do
@@ -74,6 +82,11 @@ defmodule Dynomizer.Scheduler do
 
   def handle_call(:running, _from, {_, running} = state) do
     {:reply, running, state}
+  end
+
+  def handle_call(:scaled, _from, {scaler, _} = state) do
+    result = if scaler.__info__(:functions)[:scaled], do: scaler.scaled, else: nil
+    {:reply, result, state}
   end
 
   def terminate(reason, {_, running}) do
@@ -164,8 +177,6 @@ defmodule Dynomizer.Scheduler do
     # It's OK if the timer has already been sent.
     Process.cancel_timer(timer)
   end
-
-  defp job_name(%Schedule{id: id}), do: "job#{id}"
 
   defp ids(schedules), do: schedules |> Enum.map(&(&1.id))
 end

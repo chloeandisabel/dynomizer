@@ -3,7 +3,6 @@ defmodule Dynomizer.MockHeroku do
   Testing version of Heroku API.
   """
 
-  require Logger
   alias Dynomizer.Rule
 
   @doc "Clear all memory of calls to scale."
@@ -12,7 +11,7 @@ defmodule Dynomizer.MockHeroku do
   end
 
   def scaled do
-    __MODULE__ |> Process.get([]) |> Enum.reverse
+    Process.get(__MODULE__, []) |> Enum.reverse
   end
 
   def scale(app, dyno_type, rule) do
@@ -61,6 +60,8 @@ defmodule Dynomizer.SchedulerTest do
     {:ok, [schedules: schedules]}
   end
 
+  # ================ refresh ================
+
   test "refresh starts scheduled jobs" do
     running = Scheduler.running
     assert running |> Map.keys |> length == 3
@@ -106,6 +107,17 @@ defmodule Dynomizer.SchedulerTest do
     assert length(Quantum.jobs()) == 0
     assert length(running_jobs(:cron)) == 0
   end
+
+  # ================ run_at ================
+
+  test "run_at scales dynos" do
+    assert Scheduler.run_at("app", "dyno_type", "+5") == :ok
+    scaled = Scheduler.scaled()
+    assert length(scaled) == 1
+    assert hd(scaled) == {"app", "dyno_type", "+5", 10, 15}
+  end
+
+  # ================ helpers ================
 
   # Returns the list of running {schedule, arg} jobs that are of the given
   # method (:cron or :at).

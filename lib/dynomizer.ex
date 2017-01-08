@@ -7,7 +7,7 @@ defmodule Dynomizer do
     import Supervisor.Spec
 
     # Define workers and child supervisors to be supervised
-    scaler_module = Application.fetch_env(:dynomizer, :scaler)
+    {:ok, scaler_module} = Application.fetch_env(:dynomizer, :scaler)
     children = [
       # Start the Ecto repository
       supervisor(Dynomizer.Repo, []),
