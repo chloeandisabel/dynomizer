@@ -7,8 +7,7 @@ Dyno counts are increased or decreased by specifying absolute numbers (12,
 /3).
 
 Dynomizer is a [Phoenix](http://www.phoenixframework.org/) application. The
-web interface is used to edit the records in the database and to start and
-stop the scheduler.
+web interface is used to edit the records in the database.
 
 # Environment
 
@@ -34,7 +33,8 @@ The main page of the application is a dashboard with the following elements:
 
 ## Miscellaneous
 
-All dates and times are UTC.
+All dates and times are UTC. `at` schedule strings should not specify any
+time zone offset.
 
 See https://github.com/c-rack/quantum-elixir for the `crontab`-like schedule
 format.
