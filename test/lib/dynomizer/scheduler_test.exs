@@ -1,36 +1,3 @@
-defmodule Dynomizer.MockHeroku do
-  @moduledoc """
-  Testing version of Heroku API.
-  """
-
-  alias Dynomizer.Rule
-
-  @doc "Clear all memory of calls to scale."
-  def reset do
-    Process.delete(__MODULE__)
-  end
-
-  def scaled do
-    Process.get(__MODULE__, []) |> Enum.reverse
-  end
-
-  def scale(app, dyno_type, rule) do
-    curr_count = curr_count(app, dyno_type)
-    new_count = Rule.apply(rule, curr_count)
-    remember(app, dyno_type, rule, curr_count, new_count)
-  end
-
-  def curr_count(_, _), do: 10
-
-  defp remember(app, dyno_type, rule, curr_count, new_count) do
-    entries = Process.get(__MODULE__, [])
-    entry = {app, dyno_type, rule, curr_count, new_count}
-    Process.put(__MODULE__, [entry|entries])
-  end
-end
-
-# ================================================================
-
 defmodule Dynomizer.SchedulerTest do
   use ExUnit.Case
   doctest Dynomizer.Scheduler
