@@ -122,8 +122,8 @@ defmodule Dynomizer.SchedulerTest do
   # Returns the list of running {schedule, arg} jobs that are of the given
   # method (:cron or :at).
   defp running_jobs(method) do
-      Scheduler.running
-      |> Enum.filter(fn {_, {s, _}} -> Schedule.method(s) == method end)
-      |> Enum.map(fn {_, schedule_and_arg} -> schedule_and_arg end)
+    Scheduler.running
+    |> Enum.filter(fn {_, {s, _}} -> Schedule.method(s) == method end)
+    |> Enum.map(fn {_, schedule_and_arg} -> schedule_and_arg end)
   end
 end
