@@ -17,3 +17,7 @@ config :dynomizer, Dynomizer.Repo,
   database: "dynomizer_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
+
+# The module to use for actual dyno scaling.
+config :dynomizer,
+  scaler: Dynomizer.MockHeroku

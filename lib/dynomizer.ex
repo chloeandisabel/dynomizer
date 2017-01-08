@@ -7,13 +7,14 @@ defmodule Dynomizer do
     import Supervisor.Spec
 
     # Define workers and child supervisors to be supervised
+    scaler_module = Application.fetch_env(:dynomizer, :scaler)
     children = [
       # Start the Ecto repository
       supervisor(Dynomizer.Repo, []),
       # Start the endpoint when the application starts
       supervisor(Dynomizer.Endpoint, []),
       # Start your own workers
-      worker(Dynomizer.Scheduler, []),
+      worker(Dynomizer.Scheduler, [scaler_module])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

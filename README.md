@@ -73,6 +73,10 @@ not wind up with the original number. For example 100 + 30% = 130, but 130 -
 Schedules are either `crontab` strings or timestamps. All times are treated
 as UTC.
 
+# To Do
+
+- Perhaps add max and min counts to schedules
+
 # Phoenix
 
 To start your Phoenix app:

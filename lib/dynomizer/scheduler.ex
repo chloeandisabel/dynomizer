@@ -7,49 +7,76 @@ defmodule Dynomizer.Scheduler do
   `Process.send_after` for at-style scheduling.
 
  `refresh` loads all schedules, cancels all modified jobs (as determined by
-  the updated_at datetime), and schedules all new and changed schedules. We
-  use Quantum to schedule execution of `refresh` at regular one-minute
-  intervals.
+  the updated_at datetime), and schedules all new and changed schedules. In
+  the config files we tell Quantum to schedule execution of `refresh` at
+  regular one-minute intervals.
 
  `run_at` handles execution of a single job.
 
-  The state contains a map whose keys are schedule ids and values are tuples
-  of the form `{schedule, arg}`. `arg` is whatever term can be used to
-  identify and stop the job: either a Quantum job name or a `Process` timer,
-  depending on the schedule's method.
+  The state is a two-element tuple. The first element is the module used to
+  actually scale Heroku dynos, and is whatever was passed in to
+  `start_link`. The second element is a map whose keys are schedule ids and
+  values are tuples of the form `{schedule, arg}`. `arg` is whatever term
+  can be used to identify and stop the job: either a Quantum job name or a
+  `Process` timer, depending on the schedule's method.
   """
 
   use GenServer
   require Logger
-  alias Dynomizer.{Repo, Schedule, Heroku}
+  alias Dynomizer.{Repo, Schedule}
 
   # ================ public ================
 
-  def start_link do
-    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+  @doc """
+  Pass in the module that will be used to scale dynos. Typically that will
+  be `Dynomizer.Heroku`, but the test environment uses a mock.
+  """
+  def start_link(scaler_module) do
+    GenServer.start_link(__MODULE__, {scaler_module, %{}}, name: __MODULE__)
   end
 
-  def run_at(app, dyno_type, rule) do
-    GenServer.call(__MODULE__, {:run_at, app, dyno_type, rule})
-  end
+  @doc """
+  Called periodically to load all schedules, cancel all modified jobs (as
+  determined by the updated_at datetime), and (re)schedule all new and
+  changed schedules.
 
+  In the config files we tell Quantum to schedule execution of `refresh` at
+  regular one-minute intervals.
+  """
   def refresh do
     GenServer.call(__MODULE__, :refresh)
   end
 
+  @doc """
+  Normally this method is called by the jobs that are scheduled, and is not
+  called by any other part of the system.
+  """
+  def run_at(app, dyno_type, rule) do
+    GenServer.call(__MODULE__, {:run_at, app, dyno_type, rule})
+  end
+
+  @doc "Return running schedules map. Used for testing."
+  def running do
+    GenServer.call(__MODULE__, :running)
+  end
+
   # ================ handlers ================
 
-  def handle_call(:refresh, _from, running) do
+  def handle_call(:refresh, _from, {scaler, running}) do
     Logger.debug "Dynomizer.Scheduler#refreshing"
-    {:reply, :ok, reschedule(running)}
+    {:reply, :ok, {scaler, reschedule(running)}}
   end
 
-  def handle_call({:run_at, app, dyno_type, rule}, _from, running) do
-    Heroku.scale(app, dyno_type, rule)
-    {:reply, :ok, running}
+  def handle_call({:run_at, app, dyno_type, rule}, _from, {scaler, _} = state) do
+    scaler.scale(app, dyno_type, rule)
+    {:reply, :ok, state}
   end
 
-  def terminate(reason, running) do
+  def handle_call(:running, _from, {_, running} = state) do
+    {:reply, running, state}
+  end
+
+  def terminate(reason, {_, running}) do
     stop_jobs(running)
     if reason != :shutdown, do: Logger.info("Dynomizer.Scheduler.terminate: #{inspect reason}")
   end
@@ -98,9 +125,15 @@ defmodule Dynomizer.Scheduler do
   # Starts a job and returns whatever term can be used to identify and stop
   # the job.
   defp start_job(%Schedule{method: :cron} = s) do
-    name = job_name(s)
-    job = {s.schedule, &run_at/3, [s.application, s.dyno_type, s.rule]}
-    Quantum.add_job(name, job)
+    name = String.to_atom("job#{s.id}")
+
+    # job = {s.schedule, &run_at/3, [s.application, s.dyno_type, s.rule]}
+    job = %Quantum.Job{
+      schedule: s.schedule,
+      task: {__MODULE__, :run_at}, # required
+      args: [s.application, s.dyno_type, s.rule],
+    }
+    :ok = Quantum.add_job(name, job)
     name
   end
   defp start_job(%Schedule{method: :at} = s) do

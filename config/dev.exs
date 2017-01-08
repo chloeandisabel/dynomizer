@@ -41,3 +41,7 @@ config :dynomizer, Dynomizer.Repo,
   database: "dynomizer_dev",
   hostname: "localhost",
   pool_size: 10
+
+# The module to use for actual dyno scaling.
+config :dynomizer,
+  scaler: Dynomizer.Heroku
