@@ -1,7 +1,8 @@
 defmodule Dynomizer.ScheduleController do
   use Dynomizer.Web, :controller
+  plug :authorize
 
-  alias Dynomizer.Schedule
+  alias Dynomizer.{Schedule, Auth}
 
   def index(conn, _params) do
     schedules = Repo.all(Schedule)
@@ -61,5 +62,14 @@ defmodule Dynomizer.ScheduleController do
     conn
     |> put_flash(:info, "Schedule deleted successfully.")
     |> redirect(to: schedule_path(conn, :index))
+  end
+
+  defp authorize(conn, _opts) do
+    if conn.assigns.authorized do
+      conn
+    else
+      conn
+      |> Auth.request_authorization
+    end
   end
 end
