@@ -32,7 +32,9 @@ defmodule Dynomizer.Scheduler do
   be `Dynomizer.Heroku`, but the test environment uses a mock.
   """
   def start_link(scaler_module) do
-    GenServer.start_link(__MODULE__, {scaler_module, %{}}, name: __MODULE__)
+    result = GenServer.start_link(__MODULE__, {scaler_module, %{}}, name: __MODULE__)
+    :ok = Quantum.add_job("1 * * *", &refresh/0)
+    result
   end
 
   @doc """
