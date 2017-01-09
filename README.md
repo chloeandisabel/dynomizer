@@ -20,6 +20,15 @@ these.
 - `POOL_SIZE` for database connections
 - `DATABASE_URL` is set when the database is created
 
+Optional:
+
+- `BASIC_AUTH_USERNAME`
+- `BASIC_AUTH_PASSWORD`
+- `BASIC_AUTH_REALM` defaults to "Application"
+
+If username and password are specified, HTTP Basic authentication is
+required to access the web app. If either is specified, both must be.
+
 # Usage
 
 When Dynomizer starts, it reads all of the records from the `schedules`

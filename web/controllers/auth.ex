@@ -10,19 +10,7 @@ defmodule Dynomizer.Auth do
   end
 
   def call(conn, _opts) do
-    authorized = if @username && @password do
-      with [auth_header] <- conn |> get_req_header("authorization"),
-           ["Basic", word] <- auth_header |> String.split,
-           [username, password] <- word |> :base64.decode |> String.split(":")
-      do
-        username == @username && password == @password
-      else
-        _ -> false
-      end
-    else
-      true
-    end
-    assign(conn, :authorized, authorized)
+    assign(conn, :authorized, authorized?(conn))
   end
 
   def request_authorization(conn) do
@@ -30,5 +18,20 @@ defmodule Dynomizer.Auth do
     |> put_resp_header("www-authenticate", "Basic realm=#{@realm}")
     |> resp(401, "HTTP Basic: Access denied.\n")
     |> halt()
+  end
+
+  defp authorized?(conn) do
+    if @username && @password do
+      with [auth_header] <- conn |> get_req_header("authorization"),
+           ["Basic", word] <- auth_header |> String.split,
+           [username, password] <- word |> :base64.decode |> String.split(":")
+        do
+          username == @username && password == @password
+        else
+          _ -> false
+      end
+    else
+      true
+    end
   end
 end
