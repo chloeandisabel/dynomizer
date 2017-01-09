@@ -9,26 +9,6 @@ Dyno counts are increased or decreased by specifying absolute numbers (12,
 Dynomizer is a [Phoenix](http://www.phoenixframework.org/) application. The
 web interface is used to edit the records in the database.
 
-# Environment
-
-Dynomizer uses the following environment variables. See
-http://www.phoenixframework.org/docs/heroku for setting all but the first of
-these.
-
-- `HEROKU_API_KEY` for the Heroku API
-- `SECRET_KEY_BASE` for app security
-- `POOL_SIZE` for database connections
-- `DATABASE_URL` is set when the database is created
-
-Optional:
-
-- `BASIC_AUTH_USERNAME`
-- `BASIC_AUTH_PASSWORD`
-- `BASIC_AUTH_REALM` defaults to "Application"
-
-If username and password are specified, HTTP Basic authentication is
-required to access the web app. If either is specified, both must be.
-
 # Usage
 
 When Dynomizer starts, it reads all of the records from the `schedules`
@@ -81,6 +61,30 @@ not wind up with the original number. For example 100 + 30% = 130, but 130 -
 
 Schedules are either `crontab` strings or timestamps. All times are treated
 as UTC.
+
+# Deploying
+
+To deploy to Heroku, see http://www.phoenixframework.org/docs/heroku.
+
+## Environment
+
+Dynomizer uses the following environment variables. The Heroku deployment
+doc at http://www.phoenixframework.org/docs/heroku talks about the settings
+for the first three.
+
+- `SECRET_KEY_BASE` for app security
+- `POOL_SIZE` for database connections
+- `DATABASE_URL` is set when the database is created
+- `HEROKU_API_KEY` for the Heroku API
+
+Optional:
+
+- `BASIC_AUTH_USERNAME`
+- `BASIC_AUTH_PASSWORD`
+- `BASIC_AUTH_REALM` defaults to "Application"
+
+If username and password are specified, HTTP Basic authentication is
+required to access the web app. If either is specified, both must be.
 
 # To Do
 
