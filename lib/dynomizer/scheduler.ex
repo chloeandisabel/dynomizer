@@ -1,6 +1,5 @@
 defmodule Dynomizer.Scheduler do
   @moduledoc """
-
   Loads Dynomizer.Schedule instances and schedules each for execution based
   on its schedule method (cron or at). Uses Quantum
   (https://github.com/c-rack/quantum-elixir) for cron-style scheduling and
