@@ -10,7 +10,7 @@ defmodule Dynomizer.Scheduler do
   the config files we tell Quantum to schedule execution of `refresh` at
   regular one-minute intervals.
 
- `run_at` handles execution of a single job.
+ `run` handles execution of a single job.
 
   The state is a two-element tuple. The first element is the module used to
   actually scale Heroku dynos, and is whatever was passed in to
@@ -52,8 +52,8 @@ defmodule Dynomizer.Scheduler do
   Normally this method is called by the jobs that are scheduled, and is not
   called by any other part of the system.
   """
-  def run_at(app, dyno_type, rule, min, max) do
-    GenServer.call(__MODULE__, {:run_at, app, dyno_type, rule, min, max})
+  def run(schedule) do
+    GenServer.call(__MODULE__, {:run, schedule})
   end
 
   @doc "Return running schedules map. Used for testing."
@@ -68,8 +68,8 @@ defmodule Dynomizer.Scheduler do
     {:reply, :ok, {scaler, reschedule(running)}}
   end
 
-  def handle_call({:run_at, app, dyno_type, rule, min, max}, _from, {scaler, _} = state) do
-    scaler.scale(app, dyno_type, rule, min, max)
+  def handle_call({:run, schedule}, _from, {scaler, _} = state) do
+    scaler.scale(schedule)
     {:reply, :ok, state}
   end
 
@@ -131,8 +131,8 @@ defmodule Dynomizer.Scheduler do
 
     job = %Quantum.Job{
       schedule: s.schedule,
-      task: {__MODULE__, :run_at}, # required
-      args: [s.application, s.dyno_type, s.rule, s.min, s.max],
+      task: {__MODULE__, :run}, # required
+      args: [s],
     }
     :ok = Quantum.add_job(name, job)
     name
@@ -141,7 +141,7 @@ defmodule Dynomizer.Scheduler do
     at = Schedule.to_unix_milliseconds(s)
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
     if at >= now do
-      msg = {:run_at, s.application, s.dyno_type, s.rule, s.min, s.max}
+      msg = {:run, s}
       Process.send_after(__MODULE__, msg, at, abs: true)
     else
       nil

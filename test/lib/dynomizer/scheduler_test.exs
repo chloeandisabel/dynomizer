@@ -75,27 +75,30 @@ defmodule Dynomizer.SchedulerTest do
     assert length(running_jobs(:cron)) == 0
   end
 
-  # ================ run_at ================
+  # ================ run ================
 
-  test "run_at scales dynos" do
-    assert Scheduler.run_at("app", "dyno_type", "+5", nil, nil) == :ok
+  test "run scales dynos" do
+    s = %Schedule{application: "app", dyno_type: "dyno_type", rule: "+5", min: nil, max: nil}
+    assert Scheduler.run(s) == :ok
     scaled = H.scaled()
     assert length(scaled) == 1
-    assert hd(scaled) == {"app", "dyno_type", "+5", 10, 15}
+    assert hd(scaled) == {15, s}
   end
 
-  test "run_at observes min" do
-    assert Scheduler.run_at("app", "dyno_type", "-15", 1, nil) == :ok
+  test "run observes min" do
+    s = %Schedule{application: "app", dyno_type: "dyno_type", rule: "-15", min: 1, max: nil}
+    assert Scheduler.run(s) == :ok
     scaled = H.scaled()
     assert length(scaled) == 1
-    assert hd(scaled) == {"app", "dyno_type", "-15", 10, 1}
+    assert hd(scaled) == {1, s}
   end
 
-  test "run_at observes max" do
-    assert Scheduler.run_at("app", "dyno_type", "+15", nil, 12) == :ok
+  test "run observes max" do
+    s = %Schedule{application: "app", dyno_type: "dyno_type", rule: "+15", min: nil, max: 12}
+    assert Scheduler.run(s) == :ok
     scaled = H.scaled()
     assert length(scaled) == 1
-    assert hd(scaled) == {"app", "dyno_type", "+15", 10, 12}
+    assert hd(scaled) == {12, s}
   end
 
   # ================ helpers ================

@@ -22,12 +22,12 @@ defmodule Dynomizer.MockHeroku do
 
   @doc """
   Return calls to scale as tuples of the form
-  `{app, dyno_type, rule, before_count, after_count}`.
+  `{after_count, schedule}`.
   """
   def scaled, do: GenServer.call(__MODULE__, :scaled)
 
-  def scale(app, dyno_type, rule, min, max) do
-    GenServer.call(__MODULE__, {:scale, app, dyno_type, rule, min, max})
+  def scale(schedule) do
+    GenServer.call(__MODULE__, {:scale, schedule})
   end
 
   def curr_count(app, dyno_type) do
@@ -48,10 +48,9 @@ defmodule Dynomizer.MockHeroku do
     {:reply, Enum.reverse(memory), state}
   end
 
-  def handle_call({:scale, app, dyno_type, rule, min, max}, _from, {curr_count, memory}) do
-    new_count = Rule.apply(rule, min, max, curr_count)
-    event = {app, dyno_type, rule, curr_count, new_count}
-    {:reply, :ok, {curr_count, [event|memory]}}
+  def handle_call({:scale, schedule}, _from, {curr_count, memory}) do
+    new_count = Rule.apply(schedule.rule, schedule.min, schedule.max, curr_count)
+    {:reply, :ok, {curr_count, [{new_count, schedule}|memory]}}
   end
 
   def handle_call({:curr_count, _, _}, _from, {curr_count, _} = state) do
