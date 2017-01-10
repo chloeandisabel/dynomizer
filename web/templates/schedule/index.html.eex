@@ -6,6 +6,8 @@
       <th>Application</th>
       <th>Dyno type</th>
       <th>Rule</th>
+      <th>Min</th>
+      <th>Max</th>
       <th>Schedule</th>
       <th>Description</th>
       <th>State</th>
@@ -19,6 +21,8 @@
       <td><%= schedule.application %></td>
       <td><%= schedule.dyno_type %></td>
       <td><%= schedule.rule %></td>
+      <td><%= schedule.min %></td>
+      <td><%= schedule.max %></td>
       <td><%= schedule.schedule %></td>
       <td><%= schedule.description %></td>
       <td><%= schedule.state %></td>

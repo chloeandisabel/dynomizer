@@ -35,6 +35,8 @@ A `Dynomizer.Schedule` record has the following fields:
 - `application` - Heroku application name
 - `dyno_type` - Heroku dyno type
 - `rule` - See below
+- `min` - Minimum dyno count, default is 0
+- `max` - Maximum dyno count, default is 0xffffffff
 - `schedule` - See below
 - `description` - Optional
 
@@ -51,7 +53,8 @@ Rules must be in one of the following formats:
 - A multiplication or division sign followed by a number (e.g., /2, *3.5).
 
 Dynomizer first asks Heroku for the current number of dynos. It then applies
-the rule to that number, rounding to the nearest integer.
+the rule to that number, rounding to the nearest integer. It next clamps the
+value between min and max inclusive.
 
 A reminder: starting with one number, adding X%, then subtracting X%, does
 not wind up with the original number. For example 100 + 30% = 130, but 130 -
@@ -109,10 +112,6 @@ module to use must be passed in. For all but the test environment that's
 `Endpoint` and `Repo` are standard Phoenix modules.
 
 `config/test.exs` specifies a mock Heroku API module.
-
-# To Do
-
-- Perhaps add max and min counts to schedules
 
 # Phoenix
 

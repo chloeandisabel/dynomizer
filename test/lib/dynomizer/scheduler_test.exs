@@ -11,7 +11,7 @@ defmodule Dynomizer.SchedulerTest do
   @past_at_schedule %{application: "app", description: "some content", dyno_type: "web", rule: "+15", schedule: @past_at, state: nil}
 
   setup context do
-    H.reset
+    H.start_link
 
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
     Ecto.Adapters.SQL.Sandbox.mode(Repo, {:shared, self()})
@@ -78,10 +78,24 @@ defmodule Dynomizer.SchedulerTest do
   # ================ run_at ================
 
   test "run_at scales dynos" do
-    assert Scheduler.run_at("app", "dyno_type", "+5") == :ok
-    scaled = Scheduler.scaled()
+    assert Scheduler.run_at("app", "dyno_type", "+5", nil, nil) == :ok
+    scaled = H.scaled()
     assert length(scaled) == 1
     assert hd(scaled) == {"app", "dyno_type", "+5", 10, 15}
+  end
+
+  test "run_at observes min" do
+    assert Scheduler.run_at("app", "dyno_type", "-15", 1, nil) == :ok
+    scaled = H.scaled()
+    assert length(scaled) == 1
+    assert hd(scaled) == {"app", "dyno_type", "-15", 10, 1}
+  end
+
+  test "run_at observes max" do
+    assert Scheduler.run_at("app", "dyno_type", "+15", nil, 12) == :ok
+    scaled = H.scaled()
+    assert length(scaled) == 1
+    assert hd(scaled) == {"app", "dyno_type", "+15", 10, 12}
   end
 
   # ================ helpers ================

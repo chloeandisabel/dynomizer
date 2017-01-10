@@ -5,6 +5,8 @@ defmodule Dynomizer.Schedule do
     field :application, :string, size: 32
     field :dyno_type, :string, size: 32
     field :rule, :string
+    field :min, :integer
+    field :max, :integer
     field :schedule, :string
     field :description, :string
     field :state, :string, size: 32

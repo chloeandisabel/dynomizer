@@ -52,21 +52,13 @@ defmodule Dynomizer.Scheduler do
   Normally this method is called by the jobs that are scheduled, and is not
   called by any other part of the system.
   """
-  def run_at(app, dyno_type, rule) do
-    GenServer.call(__MODULE__, {:run_at, app, dyno_type, rule})
+  def run_at(app, dyno_type, rule, min, max) do
+    GenServer.call(__MODULE__, {:run_at, app, dyno_type, rule, min, max})
   end
 
   @doc "Return running schedules map. Used for testing."
   def running do
     GenServer.call(__MODULE__, :running)
-  end
-
-  @doc """
-  Only used for testing, along with a mock Heroku API module. Do NOT bother
-  calling this any other time. It's harmless and you'll get back `nil`.
-  """
-  def scaled do
-    GenServer.call(__MODULE__, :scaled)
   end
 
   # ================ handlers ================
@@ -76,18 +68,14 @@ defmodule Dynomizer.Scheduler do
     {:reply, :ok, {scaler, reschedule(running)}}
   end
 
-  def handle_call({:run_at, app, dyno_type, rule}, _from, {scaler, _} = state) do
-    scaler.scale(app, dyno_type, rule)
+  def handle_call({:run_at, app, dyno_type, rule, min, max}, _from, {scaler, _} = state) do
+    scaler.scale(app, dyno_type, rule, min, max)
     {:reply, :ok, state}
   end
 
+  # for testing
   def handle_call(:running, _from, {_, running} = state) do
     {:reply, running, state}
-  end
-
-  def handle_call(:scaled, _from, {scaler, _} = state) do
-    result = if scaler.__info__(:functions)[:scaled], do: scaler.scaled, else: nil
-    {:reply, result, state}
   end
 
   def terminate(reason, {_, running}) do
@@ -141,11 +129,10 @@ defmodule Dynomizer.Scheduler do
   defp start_job(%Schedule{method: :cron} = s) do
     name = String.to_atom("job#{s.id}")
 
-    # job = {s.schedule, &run_at/3, [s.application, s.dyno_type, s.rule]}
     job = %Quantum.Job{
       schedule: s.schedule,
       task: {__MODULE__, :run_at}, # required
-      args: [s.application, s.dyno_type, s.rule],
+      args: [s.application, s.dyno_type, s.rule, s.min, s.max],
     }
     :ok = Quantum.add_job(name, job)
     name
@@ -154,7 +141,7 @@ defmodule Dynomizer.Scheduler do
     at = Schedule.to_unix_milliseconds(s)
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
     if at >= now do
-      msg = {:run_at, s.application, s.dyno_type, s.rule}
+      msg = {:run_at, s.application, s.dyno_type, s.rule, s.min, s.max}
       Process.send_after(__MODULE__, msg, at, abs: true)
     else
       nil

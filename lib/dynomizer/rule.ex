@@ -19,40 +19,48 @@ defmodule Dynomizer.Rule do
   30% = 91.
   """
 
+  @default_min 0
+  @default_max 0xffffffff
+
   @doc """
-  Given a rule string and an integer, return the result of applying the rule
-  to the integer.
+  Given a rule string, min, max, and an integer, return the result of
+  applying the rule to the integer. If `min` is `nil`, 0 is used. If `max`
+  is `nil`, 0xffffffff is used.
 
   ## Examples
 
-  iex> Dynomizer.Rule.apply("10", 5)
+  iex> Dynomizer.Rule.apply("10", nil, nil, 5)
   10
-  iex> Dynomizer.Rule.apply("+10", 5)
+  iex> Dynomizer.Rule.apply("+10", nil, nil, 5)
   15
-  iex> Dynomizer.Rule.apply("-3", 5)
+  iex> Dynomizer.Rule.apply("+10", nil, 100, 5)
+  15
+  iex> Dynomizer.Rule.apply("-3", nil, nil, 5)
   2
-  iex> Dynomizer.Rule.apply("-10", 5) # won't go below 0
+  iex> Dynomizer.Rule.apply("-10", nil, nil, 5) # won't go below 0
   0
-  iex> Dynomizer.Rule.apply("20%", 5)
+  iex> Dynomizer.Rule.apply("20%", nil, nil, 5)
   1
-  iex> Dynomizer.Rule.apply("+20%", 5)
+  iex> Dynomizer.Rule.apply("+20%", nil, nil, 5)
   6
-  iex> Dynomizer.Rule.apply("-20%", 5)
+  iex> Dynomizer.Rule.apply("-20%", nil, nil, 5)
   4
-  iex> Dynomizer.Rule.apply("-200%", 5) # won't go below 0
+  iex> Dynomizer.Rule.apply("-200%", 0, nil, 5) # won't go below 0
   0
-  iex> Dynomizer.Rule.apply("*3", 5)
+  iex> Dynomizer.Rule.apply("200%", nil, 6, 5) # won't go above 6
+  6
+  iex> Dynomizer.Rule.apply("*3", nil, nil, 5)
   15
-  iex> Dynomizer.Rule.apply("*3.5", 5) # rounds the result
+  iex> Dynomizer.Rule.apply("*3.5", nil, nil, 5) # rounds the result
   18
-  iex> Dynomizer.Rule.apply("/2", 5)
+  iex> Dynomizer.Rule.apply("/2", nil, nil, 5)
   3
   """
-  def apply(rule_str, i) do
+  def apply(rule_str, min, max, i) do
     rule_str
     |> parse
     |> apply_rule(i)
-    |> max(0)
+    |> clamp(min, max)
   end
 
   @doc """
@@ -132,5 +140,9 @@ defmodule Dynomizer.Rule do
   end
   def apply_rule({:divide, num}, i) do
     round((i * 1.0) / (num * 1.0))
+  end
+
+  defp clamp(i, min, max) do
+    i |> max(min || @default_min) |> min(max || @default_max)
   end
 end
