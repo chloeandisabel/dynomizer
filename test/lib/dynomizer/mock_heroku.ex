@@ -30,10 +30,6 @@ defmodule Dynomizer.MockHeroku do
     GenServer.call(__MODULE__, {:scale, schedule})
   end
 
-  def curr_count(app, dyno_type) do
-    GenServer.call(__MODULE__, {:curr_count, app, dyno_type})
-  end
-
   # ================ handlers ================
 
   def handle_call({:set_curr_count, i}, _from, {_, memory}) do
@@ -50,10 +46,6 @@ defmodule Dynomizer.MockHeroku do
 
   def handle_call({:scale, schedule}, _from, {curr_count, memory}) do
     new_count = Rule.apply(schedule.rule, schedule.min, schedule.max, curr_count)
-    {:reply, :ok, {curr_count, [{new_count, schedule}|memory]}}
-  end
-
-  def handle_call({:curr_count, _, _}, _from, {curr_count, _} = state) do
-    {:repy, curr_count, state}
+    {:reply, new_count, {curr_count, [{new_count, schedule}|memory]}}
   end
 end
