@@ -6,7 +6,8 @@
   <% end %>
 
   <div class="form-group">
-    <%= label f, :description, class: "control-label" %> (optional)
+    <%= label f, :description, class: "control-label" %>
+    (optional)
     <%= text_input f, :description, class: "form-control" %>
     <%= error_tag f, :description %>
   </div>
@@ -30,13 +31,15 @@
   </div>
 
   <div class="form-group">
-    <%= label f, :min, class: "control-label" %> (optional, default is 0)
+    <%= label f, :min, class: "control-label" %>
+    (optional, default is <code>0</code>)
     <%= text_input f, :min, class: "form-control" %>
     <%= error_tag f, :min %>
   </div>
 
   <div class="form-group">
-    <%= label f, :max, class: "control-label" %> (optional, default is 0xffffffff)
+    <%= label f, :max, class: "control-label" %>
+    (optional, default is <code>0xffffffff</code>)
     <%= text_input f, :max, class: "form-control" %>
     <%= error_tag f, :max %>
   </div>
