@@ -32,7 +32,7 @@ defmodule Dynomizer.Scheduler do
   """
   def start_link(scaler_module) do
     result = GenServer.start_link(__MODULE__, {scaler_module, %{}}, name: __MODULE__)
-    :ok = Quantum.add_job("1 * * *", &refresh/0)
+    :ok = Quantum.add_job("1 * * * *", &refresh/0)
     result
   end
 
@@ -41,7 +41,7 @@ defmodule Dynomizer.Scheduler do
   determined by the updated_at datetime), and (re)schedule all new and
   changed schedules.
 
-  In the config files we tell Quantum to schedule execution of `refresh` at
+  In `start_link/1` we tell Quantum to schedule execution of `refresh` at
   regular one-minute intervals.
   """
   def refresh do

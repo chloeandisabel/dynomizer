@@ -1,10 +1,6 @@
 defmodule Dynomizer.Auth do
   import Plug.Conn
 
-  @realm System.get_env("BASIC_AUTH_REALM") || "Application"
-  @username System.get_env("BASIC_AUTH_USERNAME")
-  @password System.get_env("BASIC_AUTH_PASSWORD")
-
   def init(opts) do
     opts
   end
@@ -14,19 +10,23 @@ defmodule Dynomizer.Auth do
   end
 
   def request_authorization(conn) do
+    realm = System.get_env("BASIC_AUTH_REALM") || "Application"
     conn
-    |> put_resp_header("www-authenticate", "Basic realm=#{@realm}")
+    |> put_resp_header("www-authenticate", "Basic realm=#{realm}")
     |> resp(401, "HTTP Basic: Access denied.\n")
     |> halt()
   end
 
   defp authorized?(conn) do
-    if @username && @password do
+    username = System.get_env("BASIC_AUTH_USERNAME")
+    password = System.get_env("BASIC_AUTH_PASSWORD")
+
+    if username || password do
       with [auth_header] <- conn |> get_req_header("authorization"),
            ["Basic", word] <- auth_header |> String.split,
-           [username, password] <- word |> :base64.decode |> String.split(":")
+           [u, p] <- word |> :base64.decode |> String.split(":")
         do
-          username == @username && password == @password
+          (username || "") == u && (password || "") == p
         else
           _ -> false
       end
