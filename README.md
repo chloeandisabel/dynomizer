@@ -113,6 +113,10 @@ module to use must be passed in. For all but the test environment that's
 
 `config/test.exs` specifies a mock Heroku API module.
 
+# To Do
+
+- Integrate with [HireFire](https://hirefire.io/)
+
 # Phoenix
 
 To start your Phoenix app:
