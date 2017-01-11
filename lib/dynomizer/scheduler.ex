@@ -99,13 +99,13 @@ defmodule Dynomizer.Scheduler do
     old_schedules = running |> Map.values |> Enum.map(fn {s, _} -> s end)
     new_schedules = load_schedules()
     {new, mod, del, unch} = Schedule.partition(old_schedules, new_schedules)
-    Logger.info "#{length(new)} new, #{length(mod)} mod, #{length(new)} del, #{length(unch)} unch" # DEBUG
     reschedule(new, mod, del, unch, running)
   end
 
   # Short-circuit the most common case: nothing has changed.
   defp reschedule([], [], [], _, running), do: running
   defp reschedule(new, mod, del, unch, running) do
+    Logger.info "#{length(new)} new, #{length(mod)} mod, #{length(del)} del, #{length(unch)} unch" # DEBUG
     # Stop deleted and modified jobs
     running
     |> Map.take(ids(del ++ mod))
@@ -143,7 +143,7 @@ defmodule Dynomizer.Scheduler do
   defp start_job(%Schedule{method: :at} = s) do
     at = Schedule.to_unix_milliseconds(s)
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
-    Logger.info "  :at, #{now / 1000} seconds from now" # DEBUG
+    Logger.info "  :at, #{(at - now) / 1000} seconds from now" # DEBUG
     if at >= now do
       msg = {:run, s}
       Process.send_after(__MODULE__, msg, at, abs: true)
