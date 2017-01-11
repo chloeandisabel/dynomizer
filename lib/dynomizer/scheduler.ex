@@ -64,7 +64,7 @@ defmodule Dynomizer.Scheduler do
   # ================ handlers ================
 
   def handle_call(:refresh, _from, {scaler, running}) do
-    Logger.debug "Dynomizer.Scheduler#refreshing"
+    Logger.info "Dynomizer.Scheduler#refreshing" # DEBUG
     {:reply, :ok, {scaler, reschedule(running)}}
   end
 
@@ -98,6 +98,7 @@ defmodule Dynomizer.Scheduler do
     old_schedules = running |> Map.values |> Enum.map(fn {s, _} -> s end)
     new_schedules = load_schedules()
     {new, mod, del, unch} = Schedule.partition(old_schedules, new_schedules)
+    Logger.info "#{length(new)} new, #{length(mod)} mod, #{length(new)} del, #{length(unch)} unch" # DEBUG
     reschedule(new, mod, del, unch, running)
   end
 
@@ -120,6 +121,7 @@ defmodule Dynomizer.Scheduler do
   # Start each scheduled job and return a state map.
   defp start_jobs(schedules) do
     schedules
+    |> Enum.map(fn s -> Logger.info "starting job for #{inspect s}"; s end) # DEBUG
     |> Enum.map(&({&1.id, {&1, start_job(&1)}}))
     |> Enum.into(%{})
   end
@@ -140,6 +142,7 @@ defmodule Dynomizer.Scheduler do
   defp start_job(%Schedule{method: :at} = s) do
     at = Schedule.to_unix_milliseconds(s)
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
+    Logger.info "  :at, #{now / 1000} seconds from now" # DEBUG
     if at >= now do
       msg = {:run, s}
       Process.send_after(__MODULE__, msg, at, abs: true)
@@ -152,6 +155,7 @@ defmodule Dynomizer.Scheduler do
   defp stop_jobs(running) do
     running
     |> Map.values
+    |> Enum.map(fn r -> Logger.info "stopping job #{inspect r}"; r end) # DEBUG
     |> Enum.each(fn {s, arg} -> stop_job(s.method, arg) end)
   end
 
