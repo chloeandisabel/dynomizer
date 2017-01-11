@@ -64,12 +64,11 @@ defmodule Dynomizer.Scheduler do
   # ================ handlers ================
 
   def handle_call(:refresh, _from, {scaler, running}) do
-    Logger.info "Dynomizer.Scheduler#refreshing" # DEBUG
     {:reply, :ok, {scaler, reschedule(running)}}
   end
 
   def handle_call({:run, schedule}, _from, {scaler, _} = state) do
-    Logger.info "running #{inspect schedule}" # DEBUG
+    Logger.info "running #{inspect schedule}"
     scaler.scale(schedule)
     {:reply, :ok, state}
   end
@@ -105,7 +104,6 @@ defmodule Dynomizer.Scheduler do
   # Short-circuit the most common case: nothing has changed.
   defp reschedule([], [], [], _, running), do: running
   defp reschedule(new, mod, del, unch, running) do
-    Logger.info "#{length(new)} new, #{length(mod)} mod, #{length(del)} del, #{length(unch)} unch" # DEBUG
     # Stop deleted and modified jobs
     running
     |> Map.take(ids(del ++ mod))
@@ -122,7 +120,6 @@ defmodule Dynomizer.Scheduler do
   # Start each scheduled job and return a state map.
   defp start_jobs(schedules) do
     schedules
-    |> Enum.map(fn s -> Logger.info "starting job for #{inspect s}"; s end) # DEBUG
     |> Enum.map(&({&1.id, {&1, start_job(&1)}}))
     |> Enum.into(%{})
   end
@@ -143,7 +140,6 @@ defmodule Dynomizer.Scheduler do
   defp start_job(%Schedule{method: :at} = s) do
     at = Schedule.to_unix_milliseconds(s)
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
-    Logger.info "  :at, #{(at - now) / 1000} seconds from now" # DEBUG
     if at >= now do
       msg = {:run, s}
       Process.send_after(__MODULE__, msg, at, abs: true)
@@ -156,7 +152,6 @@ defmodule Dynomizer.Scheduler do
   defp stop_jobs(running) do
     running
     |> Map.values
-    |> Enum.map(fn r -> Logger.info "stopping job #{inspect r}"; r end) # DEBUG
     |> Enum.each(fn {s, arg} -> stop_job(s.method, arg) end)
   end
 
