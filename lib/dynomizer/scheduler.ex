@@ -32,7 +32,7 @@ defmodule Dynomizer.Scheduler do
   """
   def start_link(scaler_module) do
     result = GenServer.start_link(__MODULE__, {scaler_module, %{}}, name: __MODULE__)
-    :ok = Quantum.add_job("* * * * *", fn -> __MODULE__.refresh(); :ok end)
+    :ok = Quantum.add_job("* * * * *", &refresh/0)
     result
   end
 
