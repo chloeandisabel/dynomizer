@@ -4,7 +4,7 @@ defmodule Dynomizer.Mixfile do
   def project do
     [app: :dynomizer,
      version: "0.0.1",
-     elixir: "~> 1.3",
+     elixir: "~> 1.4",
      elixirc_paths: elixirc_paths(Mix.env),
      compilers: [:phoenix, :gettext] ++ Mix.compilers,
      build_embedded: Mix.env == :prod,
@@ -18,8 +18,7 @@ defmodule Dynomizer.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Dynomizer, []},
-     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :quantum]]
+     extra_applications: [:logger, :quantum]]
   end
 
   # Specifies which paths to compile per environment.
