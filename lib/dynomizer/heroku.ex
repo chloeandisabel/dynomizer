@@ -11,7 +11,7 @@ defmodule Dynomizer.Heroku do
   Scales `schedule`'s app's dyno type and returns the new count.
   """
   def scale(schedule) do
-    client = Happi.api_client(schedule.application)
+    client = Happi.api_client(app: schedule.application)
     formation = client |> Formation.get(schedule.dyno_type)
     curr_count = formation.quantity
     new_count = Rule.apply(schedule.rule, schedule.min, schedule.max, curr_count)
