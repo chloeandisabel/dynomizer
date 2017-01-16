@@ -5,7 +5,7 @@ defmodule Dynomizer.ScheduleController do
   alias Dynomizer.{Schedule, Auth}
 
   def index(conn, _params) do
-    schedules = Repo.all(Schedule)
+    schedules = Repo.all(from s in Schedule, order_by: s.id)
     render(conn, "index.html", schedules: schedules)
   end
 

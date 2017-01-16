@@ -16,7 +16,8 @@ defmodule Dynomizer.Heroku do
     curr_count = formation.quantity
     new_count = Rule.apply(schedule.rule, schedule.min, schedule.max, curr_count)
     Logger.info("scaling #{schedule.application} #{schedule.dyno_type} using #{schedule.rule} from #{curr_count} to #{new_count}")
-    client |> Formation.update(%{formation | quantity: new_count})
+    client |> Formation.update(%{updates: [%{type: schedule.dyno_type,
+                                             quantity: new_count}]})
     new_count
   end
 end
