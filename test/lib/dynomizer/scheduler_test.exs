@@ -36,7 +36,7 @@ defmodule Dynomizer.SchedulerTest do
 
   test "refresh starts one :cron job" do
     assert length(running_jobs(:cron)) == 1
-    assert length(Quantum.jobs()) == 2 # includes the scheduler itself
+    assert length(Quantum.jobs()) == 1
   end
 
   test "refresh starts two :at jobs" do
@@ -71,7 +71,7 @@ defmodule Dynomizer.SchedulerTest do
     Repo.delete!(cron_schedule)
     Scheduler.refresh
 
-    assert length(Quantum.jobs()) == 1 # the scheduler itself
+    assert length(Quantum.jobs()) == 0
     assert length(running_jobs(:cron)) == 0
   end
 

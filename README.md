@@ -98,20 +98,18 @@ rest of this section, assume all module names are prefixed with
 The `Scheduler` model is in `web/models`. The controller, view, and
 templates for editing them are all in `web/{controllers,views,templates}`.
 
-In `lib/dynomizer` are the modules that schedule and run the dyno scaling:
-`Scheduler`, `Rule`, and `Heroku`.
+The `lib/dynomizer` directory contains the modules that schedule and run the
+dyno scaling: `Scheduler`, `Rule`, and `Heroku`. The two other modules in
+this directory (`Endpoint` and `Repo`) are standard Phoenix modules.
 
 The scheduler is a GenServer that is managed by the app, which means that it
-will be auto-restarted if anything goes wrong. The scheduler schedules
-itself as a [Quantum](https://github.com/c-rack/quantum-elixir) job to call
-the `refresh` function once a minute. When initialized, the Heroku API
-module to use must be passed in. For all but the test environment that's
-`Heroku`. For testing it is passed a mock module that's defined in
+will be auto-restarted if anything goes wrong. The scheduler runs its
+`refresh` function once a minute. When the scheduler is initialized, the
+Heroku API module to use must be passed in. For all but the test environment
+that's `Heroku`. For testing it is passed a mock module that's defined in
 `test/test_helper.exs`.
 
-`Endpoint` and `Repo` are standard Phoenix modules.
-
-`config/test.exs` specifies a mock Heroku API module.
+`config/test.exs` makes sure that tests use a mock Heroku API module.
 
 # To Do
 

@@ -6,9 +6,8 @@ defmodule Dynomizer.Scheduler do
   `Process.send_after` for at-style scheduling.
 
  `refresh` loads all schedules, cancels all modified jobs (as determined by
-  the updated_at datetime), and schedules all new and changed schedules. In
-  the config files we tell Quantum to schedule execution of `refresh` at
-  regular one-minute intervals.
+  the updated_at datetime), and schedules all new and changed schedules. It
+  gets called once a minute.
 
  `run` handles execution of a single job.
 
@@ -19,6 +18,8 @@ defmodule Dynomizer.Scheduler do
   can be used to identify and stop the job: either a Quantum job name or a
   `Process` timer, depending on the schedule's method.
   """
+
+  @refresh_interval_millisecs 60 * 1000 # one minute
 
   use GenServer
   require Logger
@@ -31,21 +32,12 @@ defmodule Dynomizer.Scheduler do
   be `Dynomizer.Heroku`, but the test environment uses a mock.
   """
   def start_link(scaler_module) do
-    result = GenServer.start_link(__MODULE__, {scaler_module, %{}}, name: __MODULE__)
-    :ok = Quantum.add_job("* * * * *", &refresh/0)
-    result
+    GenServer.start_link(__MODULE__, {scaler_module, %{}}, name: __MODULE__)
   end
 
-  @doc """
-  Called periodically to load all schedules, cancel all modified jobs (as
-  determined by the updated_at datetime), and (re)schedule all new and
-  changed schedules.
-
-  In `start_link/1` we tell Quantum to schedule execution of `refresh` at
-  regular one-minute intervals.
-  """
-  def refresh do
-    GenServer.call(__MODULE__, :refresh)
+  def init(state) do
+    schedule_refresh()
+    {:ok, state}
   end
 
   @doc """
@@ -56,6 +48,11 @@ defmodule Dynomizer.Scheduler do
     GenServer.call(__MODULE__, {:run, schedule})
   end
 
+  @doc "Run one refresh. Used for testing."
+  def refresh do
+    GenServer.call(__MODULE__, :refresh)
+  end
+
   @doc "Return running schedules map. Used for testing."
   def running do
     GenServer.call(__MODULE__, :running)
@@ -63,28 +60,33 @@ defmodule Dynomizer.Scheduler do
 
   # ================ handlers ================
 
+  # Run a single schedule.
+  def handle_call({:run, schedule}, _from, {scaler, _} = state) do
+    run_schedule(schedule, scaler)
+    {:reply, :ok, state}
+  end
+
+  # For testing
   def handle_call(:refresh, _from, {scaler, running}) do
     {:reply, :ok, {scaler, reschedule(running)}}
   end
 
-  def handle_call({:run, schedule}, _from, {scaler, _} = state) do
-    Logger.info "running #{inspect schedule}"
-    scaler.scale(schedule)
-    {:reply, :ok, state}
-  end
-
-  # for testing
+  # For testing
   def handle_call(:running, _from, {_, running} = state) do
     {:reply, running, state}
   end
 
-  # Target of Process.send_after
-  def handle_info({:run, _schedule} = msg, state) do
-    with {:reply, :ok, new_state} <- handle_call(msg, self(), state) do
-      {:noreply, new_state}
-    else
-      err -> {:noreply, err}
-    end
+  # Target of `schedule_refresh/0`.
+  def handle_info(:refresh, {scaler, running}) do
+    new_state = {scaler, reschedule(running)}
+    schedule_refresh()
+    {:noreply, new_state}
+  end
+
+  # Target of `Process.send_after`.
+  def handle_info({:run, schedule}, {scaler, _} = state) do
+    run_schedule(schedule, scaler)
+    {:noreply, state}
   end
 
   def terminate(reason, {_, running}) do
@@ -93,6 +95,10 @@ defmodule Dynomizer.Scheduler do
   end
 
   # ================ helpers ================
+
+  def schedule_refresh() do
+    Process.send_after(self(), :refresh, @refresh_interval_millisecs)
+  end
 
   # Loads schedules and sets their method virtual fields.
   defp load_schedules do
@@ -126,6 +132,11 @@ defmodule Dynomizer.Scheduler do
     |> Map.merge(started_map)
   end
 
+  defp run_schedule(schedule, scaler) do
+    Logger.info "running #{inspect schedule}"
+    scaler.scale(schedule)
+  end
+
   # Start each scheduled job and return a state map.
   defp start_jobs(schedules) do
     schedules
@@ -140,7 +151,7 @@ defmodule Dynomizer.Scheduler do
 
     job = %Quantum.Job{
       schedule: s.schedule,
-      task: {__MODULE__, :run}, # required
+      task: {__MODULE__, :run},
       args: [s],
     }
     :ok = Quantum.add_job(name, job)
@@ -149,9 +160,9 @@ defmodule Dynomizer.Scheduler do
   defp start_job(%Schedule{method: :at} = s) do
     at = Schedule.to_unix_milliseconds(s)
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
-    if at >= now do
-      msg = {:run, s}
-      Process.send_after(__MODULE__, msg, at, abs: true)
+    wait = at - now
+    if wait > 0 do
+      Process.send_after(self(), {:run, s}, wait)
     else
       nil
     end
