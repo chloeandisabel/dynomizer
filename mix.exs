@@ -10,7 +10,15 @@ defmodule Dynomizer.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      aliases: aliases(),
-     deps: deps()]
+     deps: deps(),
+
+     # for docs
+     name: "Dynomizer",
+     source_url: "https://github.com/chloeandisabel/dynomizer",
+     homepage_url: "https://github.com/chloeandisabel/dynomizer",
+     docs: [main: "readme",
+            # logo: "",
+            extras: ["README.md"]]]
   end
 
   # Configuration for the OTP application.
@@ -38,7 +46,8 @@ defmodule Dynomizer.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:quantum, ">= 1.8.1"},
-     {:happi, git: "https://github.com/chloeandisabel/happi.git"}]
+     {:happi, git: "https://github.com/chloeandisabel/happi.git"},
+     {:ex_doc, "~> 0.14", only: :dev}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

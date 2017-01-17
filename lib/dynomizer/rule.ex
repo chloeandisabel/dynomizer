@@ -29,32 +29,32 @@ defmodule Dynomizer.Rule do
 
   ## Examples
 
-  iex> Dynomizer.Rule.apply("10", nil, nil, 5)
-  10
-  iex> Dynomizer.Rule.apply("+10", nil, nil, 5)
-  15
-  iex> Dynomizer.Rule.apply("+10", nil, 100, 5)
-  15
-  iex> Dynomizer.Rule.apply("-3", nil, nil, 5)
-  2
-  iex> Dynomizer.Rule.apply("-10", nil, nil, 5) # won't go below 0
-  0
-  iex> Dynomizer.Rule.apply("20%", nil, nil, 5)
-  1
-  iex> Dynomizer.Rule.apply("+20%", nil, nil, 5)
-  6
-  iex> Dynomizer.Rule.apply("-20%", nil, nil, 5)
-  4
-  iex> Dynomizer.Rule.apply("-200%", 0, nil, 5) # won't go below 0
-  0
-  iex> Dynomizer.Rule.apply("200%", nil, 6, 5) # won't go above 6
-  6
-  iex> Dynomizer.Rule.apply("*3", nil, nil, 5)
-  15
-  iex> Dynomizer.Rule.apply("*3.5", nil, nil, 5) # rounds the result
-  18
-  iex> Dynomizer.Rule.apply("/2", nil, nil, 5)
-  3
+      iex> Dynomizer.Rule.apply("10", nil, nil, 5)
+      10
+      iex> Dynomizer.Rule.apply("+10", nil, nil, 5)
+      15
+      iex> Dynomizer.Rule.apply("+10", nil, 100, 5)
+      15
+      iex> Dynomizer.Rule.apply("-3", nil, nil, 5)
+      2
+      iex> Dynomizer.Rule.apply("-10", nil, nil, 5) # won't go below 0
+      0
+      iex> Dynomizer.Rule.apply("20%", nil, nil, 5)
+      1
+      iex> Dynomizer.Rule.apply("+20%", nil, nil, 5)
+      6
+      iex> Dynomizer.Rule.apply("-20%", nil, nil, 5)
+      4
+      iex> Dynomizer.Rule.apply("-200%", 0, nil, 5) # won't go below 0
+      0
+      iex> Dynomizer.Rule.apply("200%", nil, 6, 5) # won't go above 6
+      6
+      iex> Dynomizer.Rule.apply("*3", nil, nil, 5)
+      15
+      iex> Dynomizer.Rule.apply("*3.5", nil, nil, 5) # rounds the result
+      18
+      iex> Dynomizer.Rule.apply("/2", nil, nil, 5)
+      3
   """
   def apply(rule_str, min, max, i) do
     rule_str
@@ -69,22 +69,22 @@ defmodule Dynomizer.Rule do
 
   ## Examples
 
-  iex> Dynomizer.Rule.parse("3")
-  {:number, nil, 3.0}
-  iex> Dynomizer.Rule.parse("+3")
-  {:number, 1, 3.0}
-  iex> Dynomizer.Rule.parse("-3")
-  {:number, -1, 3.0}
-  iex> Dynomizer.Rule.parse("10%")
-  {:percent, nil, 10.0}
-  iex> Dynomizer.Rule.parse("+10.5%")
-  {:percent, 1, 10.5}
-  iex> Dynomizer.Rule.parse("-10%")
-  {:percent, -1, 10.0}
-  iex> Dynomizer.Rule.parse("*3.5")
-  {:multiply, 3.5}
-  iex> Dynomizer.Rule.parse("/3.5")
-  {:divide, 3.5}
+      iex> Dynomizer.Rule.parse("3")
+      {:number, nil, 3.0}
+      iex> Dynomizer.Rule.parse("+3")
+      {:number, 1, 3.0}
+      iex> Dynomizer.Rule.parse("-3")
+      {:number, -1, 3.0}
+      iex> Dynomizer.Rule.parse("10%")
+      {:percent, nil, 10.0}
+      iex> Dynomizer.Rule.parse("+10.5%")
+      {:percent, 1, 10.5}
+      iex> Dynomizer.Rule.parse("-10%")
+      {:percent, -1, 10.0}
+      iex> Dynomizer.Rule.parse("*3.5")
+      {:multiply, 3.5}
+      iex> Dynomizer.Rule.parse("/3.5")
+      {:divide, 3.5}
   """
   def parse(rule_str) do
     len = String.length(rule_str)
