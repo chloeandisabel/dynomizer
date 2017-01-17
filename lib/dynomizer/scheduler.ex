@@ -78,6 +78,15 @@ defmodule Dynomizer.Scheduler do
     {:reply, running, state}
   end
 
+  # Target of Process.send_after
+  def handle_info({:run, _schedule} = msg, state) do
+    with {:reply, :ok, new_state} <- handle_call(msg, self(), state) do
+      {:noreply, new_state}
+    else
+      err -> {:noreply, err}
+    end
+  end
+
   def terminate(reason, {_, running}) do
     stop_jobs(running)
     if reason != :shutdown, do: Logger.info("Dynomizer.Scheduler.terminate: #{inspect reason}")
