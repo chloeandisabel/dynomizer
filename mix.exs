@@ -46,7 +46,7 @@ defmodule Dynomizer.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:quantum, ">= 1.8.1"},
-     {:happi, git: "https://github.com/chloeandisabel/happi.git"},
+     {:napper, git: "https://github.com/chloeandisabel/napper.git"},
      {:ex_doc, "~> 0.14", only: :dev}]
   end
 
