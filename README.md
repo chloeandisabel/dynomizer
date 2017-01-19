@@ -6,6 +6,10 @@ Dyno counts are increased or decreased by specifying absolute numbers (12,
 +3, -5), percentages (+25%, -20%), or multiples or divisors (*2, *0.5x, /2,
 /3).
 
+(Note _from the future_): To integrate
+with [HireFire](https://hirefire.io/),
+use [Napper](https://github.com/chloeandisabel/napper) instead of Happi.
+
 Dynomizer is a [Phoenix](http://www.phoenixframework.org/) application. The
 web interface is used to edit the records in the database.
 
@@ -110,10 +114,6 @@ that's `Heroku`. For testing it is passed a mock module that's defined in
 `test/test_helper.exs`.
 
 `config/test.exs` makes sure that tests use a mock Heroku API module.
-
-# To Do
-
-- Integrate with [HireFire](https://hirefire.io/)
 
 # Phoenix
 

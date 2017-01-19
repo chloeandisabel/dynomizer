@@ -142,7 +142,10 @@ defmodule Dynomizer.Rule do
     round((i * 1.0) / (num * 1.0))
   end
 
+  defp clamp(i, nil, nil), do: clamp(i, @default_min, @default_max)
+  defp clamp(i, min, nil), do: clamp(i, min, @default_max)
+  defp clamp(i, nil, max), do: clamp(i, @default_min, max)
   defp clamp(i, min, max) do
-    i |> max(min || @default_min) |> min(max || @default_max)
+    i |> max(min) |> min(max)
   end
 end
