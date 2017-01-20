@@ -52,4 +52,3 @@ config :napper,
   auth: "Bearer #{System.get_env("HEROKU_API_KEY")}",
   accept: "application/vnd.heroku+json; version=3",
   master_prefix: "/apps"
-

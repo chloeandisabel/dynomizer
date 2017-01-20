@@ -5,7 +5,7 @@ defmodule Dynomizer.Heroku do
 
   require Logger
   alias Dynomizer.Rule
-  alias Dynomizer.Heroku.Formation
+  alias Happi.Heroku.Formation
 
   @doc """
   Scales `schedule`'s app's dyno type and returns the new count.
