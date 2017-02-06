@@ -20,12 +20,12 @@ defmodule Dynomizer.Schedule do
 
   ## Examples
 
-  iex> alias Dynomizer.Schedule, as: S
-  iex> S.method(%S{schedule: "3 5 * * *"})
-  :cron
-  iex> alias Dynomizer.Schedule, as: S
-  iex> S.method(%S{schedule: "2017-01-15 12:34:56"})
-  :at
+      iex> alias Dynomizer.Schedule, as: S
+      iex> S.method(%S{schedule: "3 5 * * *"})
+      :cron
+      iex> alias Dynomizer.Schedule, as: S
+      iex> S.method(%S{schedule: "2017-01-15 12:34:56"})
+      :at
   """
   def method(schedule) do
     if schedule.schedule |> String.trim |> String.split |> length == 5 do
