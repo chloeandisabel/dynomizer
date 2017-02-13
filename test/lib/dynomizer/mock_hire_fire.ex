@@ -1,6 +1,6 @@
-defmodule Dynomizer.MockHeroku do
+defmodule Dynomizer.MockHireFire do
   @moduledoc """
-  Testing version of Heroku API.
+  Testing version of HireFire scaler.
   """
 
   @start_curr_count 10
@@ -45,7 +45,7 @@ defmodule Dynomizer.MockHeroku do
   end
 
   def handle_call({:scale, schedule}, _from, {curr_count, memory}) do
-    new_count = Rule.apply(schedule.rule, schedule.min, schedule.max, curr_count)
+    new_count = Rule.apply(schedule.min_rule, schedule.min, schedule.max, curr_count)
     {:reply, new_count, {curr_count, [{new_count, schedule}|memory]}}
   end
 end

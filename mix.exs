@@ -26,7 +26,7 @@ defmodule Dynomizer.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {Dynomizer, []},
-     extra_applications: [:logger, :quantum, :happi]]
+     extra_applications: [:logger, :quantum, :apprentice]]
   end
 
   # Specifies which paths to compile per environment.
@@ -46,7 +46,7 @@ defmodule Dynomizer.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:quantum, ">= 1.8.1"},
-     {:happi, git: "https://github.com/chloeandisabel/happi.git"},
+     {:apprentice, git: "https://github.com/chloeandisabel/apprentice.git"},
      {:ex_doc, "~> 0.14", only: :dev}]
   end
 

@@ -1,6 +1,7 @@
 <h2>Edit schedule</h2>
 
 <%= render "form.html", changeset: @changeset,
-                        action: schedule_path(@conn, :update, @schedule) %>
+                        action: schedule_path(@conn, :update, @schedule),
+                        form_fields: @form_fields %>
 
 <%= link "Schedules", to: schedule_path(@conn, :index) %>

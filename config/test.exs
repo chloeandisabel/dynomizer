@@ -20,7 +20,7 @@ config :dynomizer, Dynomizer.Repo,
 
 # The module to use for actual dyno scaling.
 config :dynomizer,
-  scaler: Dynomizer.MockHeroku
+  scaler: Dynomizer.MockHireFire
 
 # Napper REST API client configuration
 config :napper,
@@ -28,4 +28,4 @@ config :napper,
   auth: "Bearer xyzzy-plugh",
   accept: "application/vnd.heroku+json; version=3",
   master_prefix: "/apps",
-  api: Dynomizer.MockHeroku
+  api: Dynomizer.MockHireFire

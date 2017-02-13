@@ -2,7 +2,7 @@ defmodule Dynomizer.SchedulerTest do
   use ExUnit.Case
   doctest Dynomizer.Scheduler
   alias Dynomizer.{Scheduler, Schedule, Repo}
-  alias Dynomizer.MockHeroku, as: H
+  alias Dynomizer.MockHireFire, as: H
 
   @future_at NaiveDateTime.utc_now |> NaiveDateTime.add(1_000_000, :seconds) |> to_string
   @past_at NaiveDateTime.utc_now |> NaiveDateTime.add(-1_000_000, :seconds) |> to_string

@@ -1,0 +1,21 @@
+<tr style="display:none">
+  <td><%= label @np, :rule, humanize(input_value(@np, :name)), class: "control-label" %></td>
+  <td>
+    <%= text_input @np, :rule, class: "form-control" %>
+    <%= if message = @np.errors[:rule] do %>
+      <span class="help-block"><%= message %></span>
+    <% end %>
+  </td>
+  <td>
+    <%= text_input @np, :min, class: "form-control" %>
+    <%= if message = @np.errors[:min] do %>
+      <span class="help-block"><%= message %></span>
+    <% end %>
+  </td>
+  <td>
+    <%= text_input @np, :max, class: "form-control" %>
+    <%= if message = @np.errors[:max] do %>
+      <span class="help-block"><%= message %></span>
+    <% end %>
+  </td>
+</tr>

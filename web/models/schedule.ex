@@ -1,16 +1,32 @@
 defmodule Dynomizer.Schedule do
   use Dynomizer.Web, :model
 
+  alias Dynomizer.NumericParameter
+
   schema "schedules" do
     field :application, :string, size: 32
     field :dyno_type, :string, size: 32
-    field :rule, :string
-    field :min, :integer
-    field :max, :integer
+    field :manager_type, :string, size: 64
     field :schedule, :string
     field :description, :string
+
+    field :decrementable, :boolean
+    field :enabled, :boolean
+    field :last_checkup_time, :string
+    field :last_scale_time, :string
+    field :metric_value, :string
+    field :new_relic_account_id, :string
+    field :new_relic_api_key, :string
+    field :new_relic_app_id, :string
+    field :notify, :boolean
+    field :ratio, :integer
+    field :scale_up_on_503, :boolean
+    field :url, :string
+
     field :state, :string, size: 32
     field :method, :string, virtual: true
+
+    has_many :numeric_parameters, NumericParameter, on_delete: :delete_all
 
     timestamps()
   end
@@ -54,6 +70,7 @@ defmodule Dynomizer.Schedule do
     {unchanged_ids, updated_ids} =
       common_ids
       |> Enum.partition(fn id ->
+# FIXME must take into account numeric params
            Map.get(old_m, id).updated_at == Map.get(new_m, id).updated_at
          end)
 
@@ -77,9 +94,26 @@ defmodule Dynomizer.Schedule do
     end
   end
 
-  @required_fields [:application, :dyno_type, :rule, :schedule]
-  @optional_fields [:description, :state]
+  @required_fields [:application, :dyno_type, :manager_type, :schedule]
+
+
+  @optional_fields [:description, :decrementable, :enabled,
+                    :last_checkup_time, :last_scale_time, :metric_value,
+                    :new_relic_account_id, :new_relic_api_key,
+                    :new_relic_app_id, :notify, :ratio, :scale_up_on_503,
+                    :url, :state]
+
   @fields @required_fields ++ @optional_fields
+
+  @doc """
+  Builds a changeset based on the `struct` and `params`.
+  """
+  def create_changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, @fields)
+    |> put_assoc(:numeric_parameters, NumericParameter.changesets_one_of_each)
+    |> validate_required(@required_fields)
+  end
 
   @doc """
   Builds a changeset based on the `struct` and `params`.
@@ -87,6 +121,7 @@ defmodule Dynomizer.Schedule do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, @fields)
+    |> cast_assoc(:numeric_parameters, required: true)
     |> validate_required(@required_fields)
   end
 end

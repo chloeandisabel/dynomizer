@@ -1,3 +1,10 @@
+<script type="text/javascript">
+  var FORM_FIELDS = <%= {:ok, json} = Poison.encode(@form_fields); raw(json) %>;
+  var MANAGER_FIELDS = FORM_FIELDS["manager_fields_map"];
+  var NUMERIC_FIELDS = FORM_FIELDS["numeric_fields"];
+  var NON_NUMERIC_FIELDS = FORM_FIELDS["non_numeric_fields"];
+</script>
+
 <%= form_for @changeset, @action, fn f -> %>
   <%= if @changeset.action do %>
     <div class="alert alert-danger">
@@ -25,23 +32,10 @@
   </div>
 
   <div class="form-group">
-    <%= label f, :rule, class: "control-label" %>
-    <%= text_input f, :rule, class: "form-control" %>
-    <%= error_tag f, :rule %>
-  </div>
-
-  <div class="form-group">
-    <%= label f, :min, class: "control-label" %>
-    (optional, default is <code>0</code>)
-    <%= text_input f, :min, class: "form-control" %>
-    <%= error_tag f, :min %>
-  </div>
-
-  <div class="form-group">
-    <%= label f, :max, class: "control-label" %>
-    (optional, default is <code>0xffffffff</code>)
-    <%= text_input f, :max, class: "form-control" %>
-    <%= error_tag f, :max %>
+    <%= label f, :manager_type, class: "control-label" %>
+    <%= select f, :manager_type, Map.keys(@form_fields.manager_fields_map), class: "form-control",
+        prompt: "Choose a manager type", onchange: "display_manager_fields();" %>
+    <%= error_tag f, :manager_type %>
   </div>
 
   <div class="form-group">
@@ -50,7 +44,122 @@
     <%= error_tag f, :schedule %>
   </div>
 
-  <div class="form-group">
+  <div class="form-group" style="display:none">
+    <%= label f, :decrementable, class: "control-label" %>
+    <%= text_input f, :decrementable, class: "form-control" %>
+    <%= error_tag f, :decrementable %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :enabled, class: "control-label" %>
+    <%= text_input f, :enabled, class: "form-control" %>
+    <%= error_tag f, :enabled %>
+  </div>
+
+  <table style="width:100%">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Rule</th>
+        <th>Min</th>
+        <th>Max</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= inputs_for f, :numeric_parameters, fn np -> %>
+        <%= render "numeric_param.html", np: np %>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :last_checkup_time, class: "control-label" %>
+    <%= text_input f, :last_checkup_time, class: "form-control" %>
+    <%= error_tag f, :last_checkup_time %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :last_scale_time, class: "control-label" %>
+    <%= text_input f, :last_scale_time, class: "form-control" %>
+    <%= error_tag f, :last_scale_time %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :metric_value, class: "control-label" %>
+    <%= text_input f, :metric_value, class: "form-control" %>
+    <%= error_tag f, :metric_value %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :new_relic_account_id, class: "control-label" %>
+    <%= text_input f, :new_relic_account_id, class: "form-control" %>
+    <%= error_tag f, :new_relic_account_id %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :new_relic_api_key, class: "control-label" %>
+    <%= text_input f, :new_relic_api_key, class: "form-control" %>
+    <%= error_tag f, :new_relic_api_key %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :new_relic_app_id, class: "control-label" %>
+    <%= text_input f, :new_relic_app_id, class: "form-control" %>
+    <%= error_tag f, :new_relic_app_id %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :notify, class: "control-label" %>
+    <%= text_input f, :notify, class: "form-control" %>
+    <%= error_tag f, :notify %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :ratio, class: "control-label" %>
+    <%= text_input f, :ratio, class: "form-control" %>
+    <%= error_tag f, :ratio %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :scale_up_on_503, class: "control-label" %>
+    <%= text_input f, :scale_up_on_503, class: "form-control" %>
+    <%= error_tag f, :scale_up_on_503 %>
+  </div>
+
+  <div class="form-group" style="display:none">
+    <%= label f, :url, class: "control-label" %>
+    <%= text_input f, :url, class: "form-control" %>
+    <%= error_tag f, :url %>
+  </div>
+
+  <div class="form-group" style="display:none">
     <%= submit "Submit", class: "btn btn-primary" %>
   </div>
 <% end %>
+
+<script type="text/javascript">
+  function showHide(id, show, type) {
+    var e = document.getElementById(id);
+    if (e) {
+      var display = show ? "table-row" : "none";
+      var container = type == "numeric" ? e.parentElement.parentElement : e.parentElement;
+      container.style.display = display;
+    }
+  }
+
+  function display_manager_fields() {
+    for (i in NON_NUMERIC_FIELDS)
+      showHide("schedule_" + NON_NUMERIC_FIELDS[i], false, "non_numeric");
+    for (i in NUMERIC_FIELDS)
+      showHide("schedule_numeric_parameters_" + i + "_rule", false, "numeric");
+    var mf = document.getElementById("schedule_manager_type").value;
+    if (mf != undefined && mf != "") {
+      for (i in MANAGER_FIELDS[mf]["non_numeric"])
+        showHide("schedule_" + MANAGER_FIELDS[mf]["non_numeric"][i], true, "non_numeric");
+      for (i in MANAGER_FIELDS[mf]["numeric"])
+      showHide("schedule_numeric_parameters_" + i + "_rule", true, "numeric");
+    }
+  }
+
+  display_manager_fields();
+</script>

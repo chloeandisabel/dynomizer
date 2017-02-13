@@ -1,14 +1,11 @@
 # Dynomizer
 
-Dynomizer automatically scales Heroku Dynos on schedule. It reads schedules
-from a database using `crontab`- or `at`-like scheduling specifications.
-Dyno counts are increased or decreased by specifying absolute numbers (12,
-+3, -5), percentages (+25%, -20%), or multiples or divisors (*2, *0.5x, /2,
-/3).
-
-(Note _from the future_): To integrate
-with [HireFire](https://hirefire.io/),
-use [Napper](https://github.com/chloeandisabel/napper) instead of Happi.
+Dynomizer automatically modifies [HireFire](https://hirefire.io/) Heroku
+Dyno scaling rules on schedule. It reads schedules from a database using
+`crontab`- or `at`-like scheduling specifications. HireFire rules modify
+manager numbers like minimimum and maximum by specifying absolute numbers
+(12, +3, -5), percentages (+25%, -20%), or multiples or divisors (*2, *0.5x,
+/2, /3).
 
 Dynomizer is a [Phoenix](http://www.phoenixframework.org/) application. The
 web interface is used to edit the records in the database.
@@ -34,13 +31,25 @@ format.
 
 ## Configuration
 
-A `Dynomizer.Schedule` record has the following fields:
+A `Dynomizer.Schedule` record has a number of fields which map to the
+exposed Manager API values in the HireFire API. Not all HireFire manager
+values are exposed via their API (for example, web server response times and
+upscale and downscale sensitivity and timeout settings), and not all of
+the exposed values are used by Dynomizer (for example, notification
+settings).
 
 - `application` - Heroku application name
 - `dyno_type` - Heroku dyno type
-- `rule` - See below
+- `type` - Dyno type / metric source / metric type
+- `enabled` - HireFire rule enabled flag
+- `min_rule` - See below
 - `min` - Minimum dyno count, default is 0
+- `max_rule` - See below
 - `max` - Maximum dyno count, default is 0xffffffff
+- `ratio_rule`
+- `ratio` - Add one dyno for every _X_ jobs
+- `decrementable` - Allow the manager to scale down dynos to the current
+  minimum while there are still jobs in the queue
 - `schedule` - See below
 - `description` - Optional
 
