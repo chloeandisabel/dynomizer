@@ -1,5 +1,8 @@
 <tr style="display:none">
-  <td><%= label @np, :rule, humanize(input_value(@np, :name)), class: "control-label" %></td>
+  <td>
+    <%= label @np, :rule, humanize(input_value(@np, :name)), class: "control-label" %>
+    <%= hidden_input @np, :name %>
+  </td>
   <td>
     <%= text_input @np, :rule, class: "form-control" %>
     <%= if message = @np.errors[:rule] do %>
