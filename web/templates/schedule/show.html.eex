@@ -112,7 +112,7 @@
   function showHide(id, show) {
     var e = document.getElementById(id);
     if (e) {
-      var display = show ? "block" : "none";
+      var display = show ? "list-item" : "none";
       e.style.display = display;
     }
   }
