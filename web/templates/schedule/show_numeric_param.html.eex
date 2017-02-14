@@ -1,0 +1,6 @@
+<li id="<%= @np.name %>" style="display:none">
+  <strong><%= humanize @np.name %>:</strong>
+  Rule: <%= @np.rule %>,
+  Min: <td><%= @np.min %>,
+  Max: <td><%= @np.max %>
+</li>

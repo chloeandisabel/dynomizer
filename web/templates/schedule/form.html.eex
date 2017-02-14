@@ -31,9 +31,10 @@
     <%= error_tag f, :dyno_type %>
   </div>
 
+  <% options = @form_fields.manager_fields_map |> Map.keys |> manager_type_select_options %>
   <div class="form-group">
     <%= label f, :manager_type, class: "control-label" %>
-    <%= select f, :manager_type, Map.keys(@form_fields.manager_fields_map), class: "form-control",
+    <%= select f, :manager_type, options, class: "form-control",
         prompt: "Choose a manager type", onchange: "display_manager_fields();" %>
     <%= error_tag f, :manager_type %>
   </div>
@@ -46,13 +47,13 @@
 
   <div class="form-group" style="display:none">
     <%= label f, :decrementable, class: "control-label" %>
-    <%= text_input f, :decrementable, class: "form-control" %>
+    <%= checkbox f, :decrementable, class: "form-control" %>
     <%= error_tag f, :decrementable %>
   </div>
 
   <div class="form-group" style="display:none">
     <%= label f, :enabled, class: "control-label" %>
-    <%= text_input f, :enabled, class: "form-control" %>
+    <%= checkbox f, :enabled, class: "form-control" %>
     <%= error_tag f, :enabled %>
   </div>
 
@@ -110,7 +111,7 @@
 
   <div class="form-group" style="display:none">
     <%= label f, :notify, class: "control-label" %>
-    <%= text_input f, :notify, class: "form-control" %>
+    <%= checkbox f, :notify, class: "form-control" %>
     <%= error_tag f, :notify %>
   </div>
 
@@ -122,13 +123,13 @@
 
   <div class="form-group" style="display:none">
     <%= label f, :scale_up_on_503, class: "control-label" %>
-    <%= text_input f, :scale_up_on_503, class: "form-control" %>
+    <%= checkbox f, :scale_up_on_503, class: "form-control" %>
     <%= error_tag f, :scale_up_on_503 %>
   </div>
 
   <div class="form-group" style="display:none">
-    <%= label f, :url, class: "control-label" %>
-    <%= text_input f, :url, class: "form-control" %>
+    <%= label f, :url, "URL", class: "control-label" %>
+    <%= url_input f, :url, class: "form-control" %>
     <%= error_tag f, :url %>
   </div>
 
@@ -141,8 +142,15 @@
   function showHide(id, show, type) {
     var e = document.getElementById(id);
     if (e) {
-      var display = show ? "table-row" : "none";
-      var container = type == "numeric" ? e.parentElement.parentElement : e.parentElement;
+      var display, container;
+      if (type == "numeric") {
+        display  = show ? "table-row" : "none";
+        container = e.parentElement.parentElement;
+      }
+      else {
+        display  = show ? "inline" : "none";
+        container = e.parentElement;
+      }
       container.style.display = display;
     }
   }

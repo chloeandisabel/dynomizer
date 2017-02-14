@@ -1,6 +1,18 @@
+<script type="text/javascript">
+  var FORM_FIELDS = <%= {:ok, json} = Poison.encode(@form_fields); raw(json) %>;
+  var MANAGER_FIELDS = FORM_FIELDS["manager_fields_map"];
+  var NUMERIC_FIELDS = FORM_FIELDS["numeric_fields"];
+  var NON_NUMERIC_FIELDS = FORM_FIELDS["non_numeric_fields"];
+</script>
+
 <h2>Show schedule</h2>
 
 <ul>
+
+  <li>
+    <strong>Description:</strong>
+    <%= @schedule.description %>
+  </li>
 
   <li>
     <strong>Application:</strong>
@@ -13,28 +25,8 @@
   </li>
 
   <li>
-    <strong>Rule:</strong>
-    <%= @schedule.rule %>
-  </li>
-
-  <li>
-    <strong>Min:</strong>
-    <%= @schedule.min %>
-  </li>
-
-  <li>
-    <strong>Max:</strong>
-    <%= @schedule.max %>
-  </li>
-
-  <li>
-    <strong>Schedule:</strong>
-    <%= @schedule.schedule %>
-  </li>
-
-  <li>
-    <strong>Description:</strong>
-    <%= @schedule.description %>
+    <strong>Manager type:</strong>
+    <%= manager_type_display @schedule.manager_type %>
   </li>
 
   <li>
@@ -42,8 +34,102 @@
     <%= @schedule.state %>
   </li>
 
+  <li>
+    <strong>Schedule:</strong>
+    <%= @schedule.schedule %>
+  </li>
+
+  <li id="decrementable" style="display:none">
+    <strong>Decrementable:</strong>
+    <%= @schedule.decrementable %>
+  </li>
+
+  <li id="enabled" style="display:none">
+    <strong>Enabled:</strong>
+    <%= @schedule.enabled %>
+  </li>
+
+  <%= for np <- @schedule.numeric_parameters do %>
+    <%= render "show_numeric_param.html", np: np %>
+  <% end %>
+
+  <li id="last_checkup_time" style="display:none">
+    <strong>Last checkup time</strong>
+    <%= @schedule.last_checkup_time %>
+  </li>
+
+  <li id="last_scale_time" style="display:none">
+    <strong>Last scale time</strong>
+    <%= @schedule.last_scale_time %>
+  </li>
+
+  <li id="metric_value" style="display:none">
+    <strong>Metric value</strong>
+    <%= @schedule.metric_value %>
+  </li>
+
+  <li id="new_relic_account_id" style="display:none">
+    <strong>New relic account id</strong>
+    <%= @schedule.new_relic_account_id %>
+  </li>
+
+  <li id="new_relic_api_key" style="display:none">
+    <strong>New relic api key</strong>
+    <%= @schedule.new_relic_api_key %>
+  </li>
+
+  <li id="new_relic_app_id" style="display:none">
+   <strong>New relic app id</strong>
+    <%= @schedule.new_relic_app_id %>
+  </li>
+
+  <li id="notify" style="display:none">
+    <strong>Notify</strong>
+    <%= @schedule.notify %>
+  </li>
+
+  <li id="ratio" style="display:none">
+    <strong>Ratio</strong>
+    <%= @schedule.ratio %>
+  </li>
+
+  <li id="scale_up_on_503" style="display:none">
+    <strong>Scale up on 503</strong>
+    <%= @schedule.scale_up_on_503 %>
+  </li>
+
+  <li id="url" style="display:none">
+    <strong>URL</strong>
+    <%= link @schedule.url, to: @schedule.url %>
+  </li>
 </ul>
 
 <%= link "Edit", to: schedule_path(@conn, :edit, @schedule) %>
 
 <%= link "Schedules", to: schedule_path(@conn, :index) %>
+
+<script type="text/javascript">
+  function showHide(id, show) {
+    var e = document.getElementById(id);
+    if (e) {
+      var display = show ? "block" : "none";
+      e.style.display = display;
+    }
+  }
+
+  function display_manager_fields() {
+    for (i in NON_NUMERIC_FIELDS)
+      showHide(NON_NUMERIC_FIELDS[i], false);
+    for (i in NUMERIC_FIELDS)
+      showHide(NUMERIC_FIELDS[i], false);
+    var mf = "<%= @schedule.manager_type %>";
+    if (mf != "") {
+      for (i in MANAGER_FIELDS[mf]["non_numeric"])
+        showHide(MANAGER_FIELDS[mf]["non_numeric"][i], true);
+      for (i in MANAGER_FIELDS[mf]["numeric"])
+        showHide(MANAGER_FIELDS[mf]["numeric"][i], true);
+    }
+  }
+
+  display_manager_fields();
+</script>

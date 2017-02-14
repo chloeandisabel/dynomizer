@@ -8,6 +8,8 @@ defmodule Dynomizer.Repo.Migrations.CreateNumericParameter do
       add :rule, :string
       add :min, :integer
       add :max, :integer
+
+      timestamps()
     end
   end
 end

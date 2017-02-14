@@ -77,7 +77,7 @@ defmodule Dynomizer.ScheduleController do
   defp form_fields do
     numeric_fields = Dynomizer.NumericParameter.numeric_parameter_names
     all_fields = Map.keys(Manager.__struct__)
-    manager_field_map =
+    manager_fields_map =
       Manager.updatable_fields
       |> Enum.reduce(%{}, fn {manager_name, fields}, m ->
         {numeric, non_numeric} = Enum.split_with(fields, &(Enum.member?(numeric_fields, &1)))
@@ -88,6 +88,6 @@ defmodule Dynomizer.ScheduleController do
       end)
     %{non_numeric_fields: all_fields -- numeric_fields,
       numeric_fields: numeric_fields,
-      manager_fields_map: manager_field_map}
+      manager_fields_map: manager_fields_map}
   end
 end

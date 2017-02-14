@@ -51,6 +51,7 @@ defmodule Dynomizer.Web do
 
       import Dynomizer.Router.Helpers
       import Dynomizer.ErrorHelpers
+      import Dynomizer.ScheduleHelpers
       import Dynomizer.Gettext
     end
   end
