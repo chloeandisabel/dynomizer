@@ -6,9 +6,30 @@ defmodule Dynomizer.SchedulerTest do
 
   @future_at NaiveDateTime.utc_now |> NaiveDateTime.add(1_000_000, :seconds) |> to_string
   @past_at NaiveDateTime.utc_now |> NaiveDateTime.add(-1_000_000, :seconds) |> to_string
-  @cron_schedule %{application: "app", description: "some content", dyno_type: "web", rule: "+5", schedule: "30 4 * * *", state: nil}
-  @at_schedule %{application: "app", description: "some content", dyno_type: "web", rule: "+10", schedule: @future_at, state: nil}
-  @past_at_schedule %{application: "app", description: "some content", dyno_type: "web", rule: "+15", schedule: @past_at, state: nil}
+  @cron_schedule %{application: "app", description: "some content", dyno_type: "web",
+                   manager_type: "Web.NewRelic.V2.ResponseTime",
+                   numeric_parameters: [
+                     %{name: "minimum", rule: "+5", min: 1, max: 100},
+                     %{name: "maximum", rule: "+5", min: 1, max: 100},
+                     %{name: "ratio", rule: "+20", min: 0, max: 100}
+                   ],
+                   schedule: "30 4 * * *", state: nil}
+  @at_schedule %{application: "app", description: "some content", dyno_type: "web",
+                 manager_type: "Web.NewRelic.V2.ResponseTime",
+                 numeric_parameters: [
+                   %{name: "minimum", rule: "+5", min: 1, max: 100},
+                   %{name: "maximum", rule: "+5", min: 1, max: 100},
+                   %{name: "ratio", rule: "+20", min: 0, max: 100}
+                 ],
+                 schedule: @future_at, state: nil}
+  @past_at_schedule %{application: "app", description: "some content", dyno_type: "web",
+                      manager_type: "Web.NewRelic.V2.ResponseTime",
+                      numeric_parameters: [
+                        %{name: "minimum", rule: "+5", min: 1, max: 100},
+                        %{name: "maximum", rule: "+5", min: 1, max: 100},
+                        %{name: "ratio", rule: "+20", min: 0, max: 100}
+                      ],
+                      schedule: @past_at, state: nil}
 
   setup context do
     H.start_link
@@ -78,27 +99,42 @@ defmodule Dynomizer.SchedulerTest do
   # ================ run ================
 
   test "run scales dynos" do
-    s = %Schedule{application: "app", dyno_type: "dyno_type", rule: "+5", min: nil, max: nil}
+    s = %Schedule{application: "app", dyno_type: "dyno_type",
+                  numeric_parameters: [
+                    %{name: "minimum", rule: "+5", min: 1, max: 100},
+                    %{name: "maximum", rule: "+5", min: 1, max: 100},
+                    %{name: "ratio", rule: "+20", min: 0, max: 100}
+                  ]}
     assert Scheduler.run(s) == :ok
     scaled = H.scaled()
     assert length(scaled) == 1
-    assert hd(scaled) == {15, s}
+    assert hd(scaled) == {6, 25, s}
   end
 
   test "run observes min" do
-    s = %Schedule{application: "app", dyno_type: "dyno_type", rule: "-15", min: 1, max: nil}
+    s = %Schedule{application: "app", dyno_type: "dyno_type",
+                  numeric_parameters: [
+                    %{name: "minimum", rule: "+1", min: 5, max: 100},
+                    %{name: "maximum", rule: "+5", min: 5, max: 100},
+                    %{name: "ratio", rule: "+20", min: 0, max: 100}
+                  ]}
     assert Scheduler.run(s) == :ok
     scaled = H.scaled()
     assert length(scaled) == 1
-    assert hd(scaled) == {1, s}
+    assert hd(scaled) == {5, 25, s}
   end
 
   test "run observes max" do
-    s = %Schedule{application: "app", dyno_type: "dyno_type", rule: "+15", min: nil, max: 12}
+    s = %Schedule{application: "app", dyno_type: "dyno_type",
+                  numeric_parameters: [
+                    %{name: "minimum", rule: "+5", min: 1, max: 100},
+                    %{name: "maximum", rule: "+200", min: 1, max: 100},
+                    %{name: "ratio", rule: "+20", min: 0, max: 100}
+                  ]}
     assert Scheduler.run(s) == :ok
     scaled = H.scaled()
     assert length(scaled) == 1
-    assert hd(scaled) == {12, s}
+    assert hd(scaled) == {6, 100, s}
   end
 
   # ================ helpers ================

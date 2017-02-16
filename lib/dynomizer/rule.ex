@@ -104,6 +104,28 @@ defmodule Dynomizer.Rule do
     end
   end
 
+  @doc """
+  Returns true if `rule_str` is a simple numeric value, not +/-, %, etc.
+
+  ## Examples
+
+      iex> Dynomizer.Rule.absolute?("3")
+      true
+      iex> Dynomizer.Rule.absolute?("3.57")
+      true
+      iex> Dynomizer.Rule.absolute?("+3")
+      false
+      iex> Dynomizer.Rule.absolute?("-3")
+      false
+      iex> Dynomizer.Rule.absolute?("3%")
+      false
+      iex> Dynomizer.Rule.absolute?("*3")
+      false
+      iex> Dynomizer.Rule.absolute?("/3")
+      false
+  """
+  def absolute?(<<char, _::binary>>), do: char in ?0..?9
+
   defp sign?("-"), do: true
   defp sign?("+"), do: true
   defp sign?(_), do: false

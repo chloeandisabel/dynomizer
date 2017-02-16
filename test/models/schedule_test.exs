@@ -7,19 +7,14 @@ defmodule Dynomizer.ScheduleTest do
   @valid_base_attrs %{application: "appname", description: "some content",
                       dyno_type: "web", manager_type: "Web.NewRelic.V2.ResponseTime",
                       enabled: true, decrementable: true,
-                      min_rule: "+5", min: 1, min_min: 0, min_max: 100,
-                      max_rule: "+10", max: 10, max_min: 0, max_max: 100,
-                      ratio_rule: "-15%", ratio: 20, ratio_min: 0, ratio_max: 100,
+                      numeric_parameters: [
+                        %{name: "minimum", rule: "+5", min: 1, max: 100},
+                        %{name: "maximum", rule: "+5", min: 1, max: 100},
+                        %{name: "ratio", rule: "+20", min: 0, max: 100}
+                      ],
                       state: nil}
   @valid_cron_attrs Map.merge(@valid_base_attrs, %{schedule: "30 4 * * *"})
   @valid_at_attrs Map.merge(@valid_base_attrs, %{schedule: "2017-01-04 20:57:43"})
-  @valid_base_attrs %{application: "appname", description: "some content",
-                      dyno_type: "web", manager_type: "Web.NewRelic.V2.ResponseTime",
-                      enabled: 1, decrementable: 1,
-                      min_rule: "+5", min: "1", min_min: "0", min_max: "100",
-                      max_rule: "+10", max: "10", max_min: "0", max_max: "100",
-                      ratio_rule: "-15%", ratio: "20", ratio_min: "0", ratio_max: "100",
-                      schedule: "30 4 * * *"}
   @invalid_attrs %{}
 
   test "changeset with valid attributes for cron" do
@@ -29,11 +24,6 @@ defmodule Dynomizer.ScheduleTest do
 
   test "changeset with valid attributes for at" do
     changeset = Schedule.changeset(%Schedule{}, @valid_at_attrs)
-    assert changeset.valid?
-  end
-
-  test "changeset with valid form attributes" do
-    changeset = Schedule.changeset(%Schedule{}, @valid_form_attrs)
     assert changeset.valid?
   end
 

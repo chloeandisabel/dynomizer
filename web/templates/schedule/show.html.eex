@@ -100,7 +100,7 @@
 
   <li id="url" style="display:none">
     <strong>URL</strong>
-    <%= link @schedule.url, to: @schedule.url %>
+    <%= if @schedule.url, do: link(@schedule.url, to: @schedule.url) %>
   </li>
 </ul>
 

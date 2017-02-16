@@ -104,6 +104,7 @@ defmodule Dynomizer.Scheduler do
   defp load_schedules do
     Schedule
     |> Repo.all
+    |> Repo.preload(:numeric_parameters)
     |> Enum.map(fn s -> %{s | method: Schedule.method(s)} end)
   end
 
