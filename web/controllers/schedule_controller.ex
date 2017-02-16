@@ -54,7 +54,7 @@ defmodule Dynomizer.ScheduleController do
   end
 
   def delete(conn, %{"id" => id}) do
-    schedule = Repo.get!(Schedule, id)
+    schedule = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters)
 
     # Here we use delete! (with a bang) because we expect
     # it to always work (and if it does not, it will raise).

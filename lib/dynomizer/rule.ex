@@ -124,7 +124,7 @@ defmodule Dynomizer.Rule do
       iex> Dynomizer.Rule.absolute?("/3")
       false
   """
-  def absolute?(<<char, _::binary>>), do: char in ?0..?9
+  def absolute?(rule_str), do: rule_str =~ ~r/^\d+(\.\d+)?$/
 
   defp sign?("-"), do: true
   defp sign?("+"), do: true

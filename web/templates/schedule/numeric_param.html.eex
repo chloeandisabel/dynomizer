@@ -1,6 +1,7 @@
 <tr style="display:none">
   <td>
     <%= label @np, :rule, humanize(input_value(@np, :name)), class: "control-label" %>
+    <%= hidden_input @np, :id %>
     <%= hidden_input @np, :name %>
   </td>
   <td>
