@@ -44,11 +44,11 @@ config :dynomizer, Dynomizer.Repo,
 
 # The module to use for actual dyno scaling.
 config :dynomizer,
-  scaler: Dynomizer.Heroku
+  scaler: Dynomizer.HireFire
 
 # Napper REST API client configuration
 config :napper,
-  url: "https://api.heroku.com",
-  auth: "Bearer #{System.get_env("HEROKU_API_KEY")}",
-  accept: "application/vnd.heroku+json; version=3",
-  master_prefix: "/apps"
+  url: "https://api.hirefire.io",
+  auth: "Token #{System.get_env("HIREFIRE_API_KEY")}",
+  accept: "application/vnd.hirefire.v1+json",
+  remove_wrapper: true

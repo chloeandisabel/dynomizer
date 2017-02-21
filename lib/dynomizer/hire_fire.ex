@@ -11,6 +11,7 @@ defmodule Dynomizer.HireFire do
 
   require Logger
   alias Dynomizer.{Rule, Schedule}
+  alias Dynomizer.NumericParameter, as: NP
   alias Apprentice.HireFire.{Application, Manager}
 
   @doc """
@@ -33,6 +34,53 @@ defmodule Dynomizer.HireFire do
       |> inspect_log("scaling after")
 
     client |> Manager.update(manager)
+  end
+
+  @doc """
+  Return a list of `Dynomizer.Schedule` structs created from the currently
+  defined `Apprentice.HireFire.Manager` structs associated with
+  `application`. The schedule for each is arbitrarily set to the current
+  time.
+  """
+  def snapshot(application) do
+    client = Napper.api_client
+    app_id = client |> Application.list |> Enum.find(&(&1.name == application))
+    at = %{NaiveDateTime.utc_now() | microsecond: {0, 0}} |> NaiveDateTime.to_string
+    client
+    |> Manager.list
+    |> Enum.filter(&(&1.application_id == app.id))
+    |> Enum.map(&(schedule_from_manager(&1, application, at)))
+  end
+
+  # Given a HireFire Manager struct, return a Schedule.
+  defp schedule_from_manager(mgr, application, at) do
+    nps =
+      NP.numeric_parameter_names
+      |> Enum.map(fn n ->
+           val = Map.get(mgr, n, nil)
+           %NP{name: n, rule: to_string(val), min: nil, max: nil}
+         end)
+      |> Enum.filter(fn np -> np.rule != "" end)
+    %Schedule{
+      application: application,
+      dyno_type: mgr.name,
+      manager_type: mgr.type,
+      schedule: at,
+      description: "current #{application} #{mgr.name}",
+      decrementable: mgr.decrementable,
+      enabled: mgr.enabled,
+      last_checkup_time: mgr.last_checkup_time,
+      last_scale_time: mgr.last_scale_time,
+      metric_value: mgr.metric_value,
+      new_relic_account_id: mgr.new_relic_account_id,
+      new_relic_api_key: mgr.new_relic_api_key,
+      new_relic_app_id: mgr.new_relic_app_id,
+      notify: mgr.notify,
+      ratio: mgr.ratio,
+      scale_up_on_503: mgr.scale_up_on_503,
+      url: mgr.url,
+      numeric_parameters: nps
+    }
   end
 
   defp inspect_log(thing, msg) do

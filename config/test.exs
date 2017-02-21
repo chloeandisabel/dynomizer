@@ -26,6 +26,6 @@ config :dynomizer,
 config :napper,
   url: "https://api.example.com",
   auth: "Bearer xyzzy-plugh",
-  accept: "application/vnd.heroku+json; version=3",
-  master_prefix: "/apps",
+  accept: "application/vnd.hirefire.v1+json",
+  remove_wrapper: true,
   api: Dynomizer.MockHireFire
