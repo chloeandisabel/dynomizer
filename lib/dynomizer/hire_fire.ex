@@ -72,7 +72,7 @@ defmodule Dynomizer.HireFire do
       NP.numeric_parameter_names
       |> Enum.map(fn n ->
            val = Map.get(mgr, n, nil)
-           %NP{name: n, rule: to_string(val), min: nil, max: nil}
+           %NP{name: to_string(n), rule: to_string(val), min: nil, max: nil}
          end)
       |> Enum.filter(fn np -> np.rule != "" end)
     %Schedule{

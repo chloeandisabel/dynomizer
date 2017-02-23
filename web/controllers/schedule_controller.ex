@@ -83,21 +83,17 @@ defmodule Dynomizer.ScheduleController do
   def snapshot(conn, %{"schedule" => %{"application" => application}}) do
     try do
       {:ok, scaler_module} = Application.fetch_env(:dynomizer, :scaler)
-      schedules = scaler_module.snapshot(application)
-      case Repo.insert_all(Schedule, schedules) do
-        {n, _schedules} when is_integer(n) ->
-          conn
-          |> put_flash(:info, "Schedules saved successfully.")
-          |> redirect(to: schedule_path(conn, :index))
-        err ->
-          conn
-          |> put_flash(:info, "Error saving schedules: #{inspect err}")
-          |> redirect(to: schedule_path(conn, :snapshot_form))
-      end
+      scaler_module.snapshot(application)
+      |> Enum.map(&(Schedule.changeset(&1)))
+      |> Enum.map(&(Repo.insert!(&1)))
+
+      conn
+      |> put_flash(:info, "Snapshot created successfully.")
+      |> redirect(to: schedule_path(conn, :index))
     rescue
       err ->
         conn
-        |> put_flash(:info, "Error retrieving schedules: #{inspect err}")
+        |> put_flash(:info, "Error snapshotting schedules: #{inspect err}")
         |> redirect(to: schedule_path(conn, :snapshot_form))
     end
   end

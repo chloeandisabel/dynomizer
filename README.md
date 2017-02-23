@@ -124,6 +124,11 @@ that's `Heroku`. For testing it is passed a mock module that's defined in
 
 `config/test.exs` makes sure that tests use a mock Heroku API module.
 
+# To Do
+
+- Need an easy way to copy an existing schedule --- a "copy and edit" button
+  would be nice on the schedule index and show pages.
+
 # Phoenix
 
 To start your Phoenix app:
