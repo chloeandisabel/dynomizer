@@ -55,14 +55,14 @@ defmodule Dynomizer.HireFire do
   """
   def snapshot(application) do
     client = Napper.api_client
-    app_id = client |> Application.list |> Enum.find(&(&1.name == application))
+    app = client |> Application.list |> Enum.find(&(&1.name == application))
     at =
       %{NaiveDateTime.utc_now() | microsecond: {0, 0}}
       |> NaiveDateTime.add(-@one_day_in_seconds)
       |> NaiveDateTime.to_string
     client
     |> Manager.list
-    |> Enum.filter(&(&1.application_id == app_id))
+    |> Enum.filter(&(&1.application_id == app.id))
     |> Enum.map(&(schedule_from_manager(&1, application, at)))
   end
 
