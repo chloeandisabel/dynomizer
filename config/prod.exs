@@ -30,7 +30,7 @@ config :dynomizer, Dynomizer.Repo,
 
 # The module to use for actual dyno scaling.
 config :dynomizer,
-  scaler: Dynomizer.Heroku
+  scaler: Dynomizer.HireFire
 
 # Napper REST API client configuration
 config :napper,
