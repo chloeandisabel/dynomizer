@@ -34,3 +34,5 @@
 </table>
 
 <%= link "New schedule", to: schedule_path(@conn, :new) %>
+<br/><br/>
+<%= link "Snapshot current HireFire schedules", to: schedule_path(@conn, :snapshot_form) %>

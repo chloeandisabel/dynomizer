@@ -5,9 +5,10 @@ defmodule Dynomizer.MockHireFire do
 
   @start_min 1
   @start_max 20
+  @one_day_in_seconds 24 * 60 * 60
 
   use GenServer
-  alias Dynomizer.Rule
+  alias Dynomizer.{Rule, Schedule}
 
   # ================ public API ================
 
@@ -34,6 +35,14 @@ defmodule Dynomizer.MockHireFire do
     GenServer.call(__MODULE__, {:scale, schedule})
   end
 
+  def applications do
+    GenServer.call(__MODULE__, :applications)
+  end
+
+  def snapshot(application) do
+    GenServer.call(__MODULE__, {:snapshot, application})
+  end
+
   # ================ handlers ================
 
   def handle_call({:set_curr_min, i}, _from, {_, max, memory}) do
@@ -44,8 +53,8 @@ defmodule Dynomizer.MockHireFire do
     {:reply, :ok, {min, i, memory}}
   end
 
-  def handle_call(:reset, _from, {min, max, _}) do
-    {:reply, :ok, {min, max, []}}
+  def handle_call(:reset, _from, _state) do
+    {:reply, :ok, {@start_min, @start_max, []}}
   end
 
   def handle_call(:scaled, _from, {_, _, memory} = state) do
@@ -60,5 +69,36 @@ defmodule Dynomizer.MockHireFire do
     new_max = Rule.apply(np.rule, np.min, np.max, max)
 
     {:reply, {new_min, new_max}, {new_min, new_max, [{new_min, new_max, schedule}|memory]}}
+  end
+
+  def handle_call(:applications, _from, state) do
+    {:reply, ["app1", "app2"], state}
+  end
+
+  def handle_call({:snapshot, app}, _from, state) do
+    s1 = app_schedule(app, "web", "ResponseTime")
+    s2 = app_schedule(app, "job_worker", "JobQueue")
+    {:reply, [s1, s2], state}
+  end
+
+  # ================ helpers ================
+
+  defp app_schedule(app, dyno_type, manager_type_suffix) do
+    at =
+      %{NaiveDateTime.utc_now() | microsecond: {0, 0}}
+      |> NaiveDateTime.add(-@one_day_in_seconds)
+      |> NaiveDateTime.to_string
+    mgr_type = "Manager::Web::HireFire::#{manager_type_suffix}"
+    %Schedule{application: app, description: "current #{app} #{mgr_type}",
+              dyno_type: dyno_type,
+              manager_type: mgr_type,
+              schedule: at,
+              enabled: true, decrementable: true,
+              numeric_parameters: [
+                %{name: "minimum", rule: "+5", min: 1, max: 100},
+                %{name: "maximum", rule: "+5", min: 1, max: 100},
+                %{name: "ratio", rule: "+20", min: 0, max: 100}
+              ],
+              state: nil}
   end
 end

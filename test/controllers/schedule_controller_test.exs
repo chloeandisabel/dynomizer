@@ -3,7 +3,6 @@ defmodule Dynomizer.ScheduleControllerTest do
 
   alias Dynomizer.Schedule
 
-
   @valid_attrs %{application: "appname", description: "some content",
                  dyno_type: "web", manager_type: "Web.NewRelic.V2.ResponseTime",
                  schedule: "30 4 * * * *",
@@ -71,6 +70,11 @@ defmodule Dynomizer.ScheduleControllerTest do
     conn = delete conn, schedule_path(conn, :delete, schedule)
     assert redirected_to(conn) == schedule_path(conn, :index)
     refute Repo.get(Schedule, schedule.id)
+  end
+
+  test "shows applications returned by hirefire", %{conn: conn} do
+    conn = get conn, schedule_path(conn, :snapshot_form)
+    assert html_response(conn, 200) =~ ~r/app1.*app2/
   end
 
   defp form_attrs(schedule) do

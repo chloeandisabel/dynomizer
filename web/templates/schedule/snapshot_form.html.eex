@@ -1,0 +1,14 @@
+<h2>Snapshot current HireFire schedules</h2>
+
+<%= form_for @changeset, schedule_path(@conn, :snapshot), fn f -> %>
+  <div class="form-group">
+    <%= label f, :application, class: "control-label" %>
+    <%= select f, :application, @applications, class: "form-control",
+        prompt: "Choose an application" %>
+  </div>
+  <div class="form-group">
+    <%= submit "Snapshot" %>
+  </div>
+<% end %>
+
+<%= link "Schedules", to: schedule_path(@conn, :index) %>

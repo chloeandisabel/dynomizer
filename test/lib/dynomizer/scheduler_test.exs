@@ -2,7 +2,7 @@ defmodule Dynomizer.SchedulerTest do
   use ExUnit.Case
   doctest Dynomizer.Scheduler
   alias Dynomizer.{Scheduler, Schedule, Repo}
-  alias Dynomizer.MockHireFire, as: H
+  alias Dynomizer.MockHireFire, as: HF
 
   @future_at NaiveDateTime.utc_now |> NaiveDateTime.add(1_000_000, :seconds) |> to_string
   @past_at NaiveDateTime.utc_now |> NaiveDateTime.add(-1_000_000, :seconds) |> to_string
@@ -32,7 +32,7 @@ defmodule Dynomizer.SchedulerTest do
                       schedule: @past_at, state: nil}
 
   setup context do
-    H.start_link
+    HF.reset
 
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
     Ecto.Adapters.SQL.Sandbox.mode(Repo, {:shared, self()})
@@ -106,7 +106,7 @@ defmodule Dynomizer.SchedulerTest do
                     %{name: "ratio", rule: "+20", min: 0, max: 100}
                   ]}
     assert Scheduler.run(s) == :ok
-    scaled = H.scaled()
+    scaled = HF.scaled()
     assert length(scaled) == 1
     assert hd(scaled) == {6, 25, s}
   end
@@ -119,7 +119,7 @@ defmodule Dynomizer.SchedulerTest do
                     %{name: "ratio", rule: "+20", min: 0, max: 100}
                   ]}
     assert Scheduler.run(s) == :ok
-    scaled = H.scaled()
+    scaled = HF.scaled()
     assert length(scaled) == 1
     assert hd(scaled) == {5, 25, s}
   end
@@ -132,7 +132,7 @@ defmodule Dynomizer.SchedulerTest do
                     %{name: "ratio", rule: "+20", min: 0, max: 100}
                   ]}
     assert Scheduler.run(s) == :ok
-    scaled = H.scaled()
+    scaled = HF.scaled()
     assert length(scaled) == 1
     assert hd(scaled) == {6, 100, s}
   end

@@ -8,6 +8,7 @@ defmodule Dynomizer.HireFire do
     :inserted_at, :updated_at
   ]
   @inapplicable_error "can not apply relative change without an initial value"
+  @one_day_in_seconds 24 * 60 * 60
 
   require Logger
   alias Dynomizer.{Rule, Schedule}
@@ -37,18 +38,31 @@ defmodule Dynomizer.HireFire do
   end
 
   @doc """
+  Return the list of application names from HireFire.
+  """
+  def applications do
+    Napper.api_client
+    |> Application.list
+    |> Enum.map(&(&1.name))
+    |> Enum.sort
+  end
+
+  @doc """
   Return a list of `Dynomizer.Schedule` structs created from the currently
   defined `Apprentice.HireFire.Manager` structs associated with
-  `application`. The schedule for each is arbitrarily set to the current
-  time.
+  `application`. The schedule for each is arbitrarily set to one day in the
+  past.
   """
   def snapshot(application) do
     client = Napper.api_client
     app_id = client |> Application.list |> Enum.find(&(&1.name == application))
-    at = %{NaiveDateTime.utc_now() | microsecond: {0, 0}} |> NaiveDateTime.to_string
+    at =
+      %{NaiveDateTime.utc_now() | microsecond: {0, 0}}
+      |> NaiveDateTime.add(-@one_day_in_seconds)
+      |> NaiveDateTime.to_string
     client
     |> Manager.list
-    |> Enum.filter(&(&1.application_id == app.id))
+    |> Enum.filter(&(&1.application_id == app_id))
     |> Enum.map(&(schedule_from_manager(&1, application, at)))
   end
 

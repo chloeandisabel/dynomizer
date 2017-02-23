@@ -65,6 +65,43 @@ defmodule Dynomizer.ScheduleController do
     |> redirect(to: schedule_path(conn, :index))
   end
 
+  def snapshot_form(conn, _params) do
+    try do
+      {:ok, scaler_module} = Application.fetch_env(:dynomizer, :scaler)
+      applications = scaler_module.applications
+      changeset = Schedule.create_changeset(%Schedule{})
+      render(conn, "snapshot_form.html", applications: applications,
+        changeset: changeset, form_fields: form_fields())
+    rescue
+      err ->
+        conn
+        |> put_flash(:info, "Error retrieving application names: #{inspect err}")
+        |> redirect(to: schedule_path(conn, :index))
+    end
+  end
+
+  def snapshot(conn, %{"schedule" => %{"application" => application}}) do
+    try do
+      {:ok, scaler_module} = Application.fetch_env(:dynomizer, :scaler)
+      schedules = scaler_module.snapshot(application)
+      case Repo.insert_all(Schedule, schedules) do
+        {n, _schedules} when is_integer(n) ->
+          conn
+          |> put_flash(:info, "Schedules saved successfully.")
+          |> redirect(to: schedule_path(conn, :index))
+        err ->
+          conn
+          |> put_flash(:info, "Error saving schedules: #{inspect err}")
+          |> redirect(to: schedule_path(conn, :snapshot_form))
+      end
+    rescue
+      err ->
+        conn
+        |> put_flash(:info, "Error retrieving schedules: #{inspect err}")
+        |> redirect(to: schedule_path(conn, :snapshot_form))
+    end
+  end
+
   defp authorize(conn, _opts) do
     if conn.assigns.authorized do
       conn

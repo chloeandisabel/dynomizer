@@ -18,6 +18,8 @@ defmodule Dynomizer.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    get "/schedules/snapshot_form", ScheduleController, :snapshot_form
+    post "/schedules/snapshot", ScheduleController, :snapshot
     resources "/schedules", ScheduleController
   end
 
