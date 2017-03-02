@@ -11,13 +11,12 @@ defmodule Dynomizer.ScheduleController do
   end
 
   def new(conn, _params) do
-    changeset = Schedule.create_changeset(%Schedule{})
+    changeset = Schedule.new_changeset(%Schedule{})
     render(conn, "new.html", changeset: changeset, form_fields: form_fields())
   end
 
   def create(conn, %{"schedule" => schedule_params}) do
     changeset = Schedule.changeset(%Schedule{}, schedule_params)
-    |> IO.inspect(label: "create changeset") # DEBUG
 
     case Repo.insert(changeset) do
       {:ok, _schedule} ->
@@ -25,7 +24,6 @@ defmodule Dynomizer.ScheduleController do
         |> put_flash(:info, "Schedule created successfully.")
         |> redirect(to: schedule_path(conn, :index))
       {:error, changeset} ->
-        changeset |> IO.inspect(label: "changeset") # DEBUG
         render(conn, "new.html", changeset: changeset, form_fields: form_fields())
     end
   end
@@ -36,8 +34,7 @@ defmodule Dynomizer.ScheduleController do
   end
 
   def copy(conn, %{"id" => id}) do
-    schedule = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters)
-    changeset = Schedule.copy_changeset(schedule)
+    changeset = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters) |> Schedule.copy_changeset
     render(conn, "new.html", changeset: changeset, form_fields: form_fields())
   end
 
@@ -77,7 +74,7 @@ defmodule Dynomizer.ScheduleController do
     try do
       {:ok, scaler_module} = Application.fetch_env(:dynomizer, :scaler)
       applications = scaler_module.applications
-      changeset = Schedule.create_changeset(%Schedule{})
+      changeset = Schedule.new_changeset(%Schedule{})
       render(conn, "snapshot_form.html", applications: applications,
         changeset: changeset, form_fields: form_fields())
     rescue

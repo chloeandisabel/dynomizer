@@ -109,7 +109,7 @@ defmodule Dynomizer.Schedule do
   Builds a changeset for a new `struct` with a list of initialized numeric
   params based on the `struct` and `params`.
   """
-  def create_changeset(struct, params \\ %{}) do
+  def new_changeset(struct, params \\ %{}) do
     struct
     |> cast(params, @fields)
     |> put_assoc(:numeric_parameters, NumericParameter.changesets_one_of_each)

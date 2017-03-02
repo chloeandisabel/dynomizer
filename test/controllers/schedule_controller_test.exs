@@ -22,7 +22,7 @@ defmodule Dynomizer.ScheduleControllerTest do
   end
 
   test "creates resource and redirects when data is valid", %{conn: conn} do
-    schedule = Schedule.create_changeset(%Schedule{}, @valid_attrs) |> Ecto.Changeset.apply_changes
+    schedule = Schedule.new_changeset(%Schedule{}, @valid_attrs) |> Ecto.Changeset.apply_changes
     conn = post conn, schedule_path(conn, :create), schedule: form_attrs(schedule)
     assert redirected_to(conn) == schedule_path(conn, :index)
     assert Repo.get_by(Schedule, @valid_get_attrs)
@@ -34,7 +34,7 @@ defmodule Dynomizer.ScheduleControllerTest do
   end
 
   test "shows chosen resource", %{conn: conn} do
-    schedule = Repo.insert! Schedule.create_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
     conn = get conn, schedule_path(conn, :show, schedule)
     assert html_response(conn, 200) =~ "Show schedule"
   end
@@ -46,27 +46,27 @@ defmodule Dynomizer.ScheduleControllerTest do
   end
 
   test "renders form for editing chosen resource", %{conn: conn} do
-    schedule = Repo.insert! Schedule.create_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
     conn = get conn, schedule_path(conn, :edit, schedule)
     assert html_response(conn, 200) =~ "Edit schedule"
   end
 
   test "updates chosen resource and redirects when data is valid", %{conn: conn} do
-    schedule = Repo.insert! Schedule.create_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
     conn = put conn, schedule_path(conn, :update, schedule), schedule: form_attrs(schedule)
     assert redirected_to(conn) == schedule_path(conn, :show, schedule)
     assert Repo.get_by(Schedule, @valid_get_attrs)
   end
 
   test "does not update chosen resource and renders errors when data is invalid", %{conn: conn} do
-    schedule = Repo.insert! Schedule.create_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
     params = form_attrs(schedule) |> Map.delete(:application)
     conn = put conn, schedule_path(conn, :update, schedule), schedule: params
     assert html_response(conn, 302) =~ "redirected"
   end
 
   test "deletes chosen resource", %{conn: conn} do
-    schedule = Repo.insert! Schedule.create_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
     conn = delete conn, schedule_path(conn, :delete, schedule)
     assert redirected_to(conn) == schedule_path(conn, :index)
     refute Repo.get(Schedule, schedule.id)

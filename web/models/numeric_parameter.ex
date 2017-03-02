@@ -36,10 +36,7 @@ defmodule Dynomizer.NumericParameter do
   fields) based on the `struct` and `params`.
   """
   def copy_changeset(struct) do
-    params = Map.take(struct, [:name, :rule, :min, :max])
-    %__MODULE__{}
-    |> cast(params, @fields)
-    |> validate_required(@required_fields)
+    changeset(%__MODULE__{}, Map.take(struct, [:name, :rule, :min, :max]))
   end
 
   @doc """
