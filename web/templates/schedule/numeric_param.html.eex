@@ -6,20 +6,14 @@
   </td>
   <td>
     <%= text_input @np, :rule, class: "form-control" %>
-    <%= if message = @np.errors[:rule] do %>
-      <span class="help-block"><%= message %></span>
-    <% end %>
+    <%= error_tag @np, :rule %>
   </td>
   <td>
     <%= text_input @np, :min, class: "form-control" %>
-    <%= if message = @np.errors[:min] do %>
-      <span class="help-block"><%= message %></span>
-    <% end %>
+    <%= error_tag @np, :min %>
   </td>
   <td>
     <%= text_input @np, :max, class: "form-control" %>
-    <%= if message = @np.errors[:max] do %>
-      <span class="help-block"><%= message %></span>
-    <% end %>
+    <%= error_tag @np, :max %>
   </td>
 </tr>

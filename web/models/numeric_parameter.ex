@@ -32,6 +32,17 @@ defmodule Dynomizer.NumericParameter do
   end
 
   @doc """
+  Builds a changeset for a copy of `struct` (i.e. the same thing with nil id
+  fields) based on the `struct` and `params`.
+  """
+  def copy_changeset(struct) do
+    params = Map.take(struct, [:name, :rule, :min, :max])
+    %__MODULE__{}
+    |> cast(params, @fields)
+    |> validate_required(@required_fields)
+  end
+
+  @doc """
   Builds a changeset based on the `struct` and `params`.
   """
   def changeset(struct, params \\ %{}) do

@@ -25,6 +25,7 @@
 
       <td class="text-right">
         <%= link "Show", to: schedule_path(@conn, :show, schedule), class: "btn btn-default btn-xs" %>
+        <%= link "Copy", to: schedule_path(@conn, :copy, schedule), class: "btn btn-default btn-xs" %>
         <%= link "Edit", to: schedule_path(@conn, :edit, schedule), class: "btn btn-default btn-xs" %>
         <%= link "Delete", to: schedule_path(@conn, :delete, schedule), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
       </td>

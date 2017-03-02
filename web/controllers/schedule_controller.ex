@@ -17,6 +17,7 @@ defmodule Dynomizer.ScheduleController do
 
   def create(conn, %{"schedule" => schedule_params}) do
     changeset = Schedule.changeset(%Schedule{}, schedule_params)
+    |> IO.inspect(label: "create changeset") # DEBUG
 
     case Repo.insert(changeset) do
       {:ok, _schedule} ->
@@ -24,6 +25,7 @@ defmodule Dynomizer.ScheduleController do
         |> put_flash(:info, "Schedule created successfully.")
         |> redirect(to: schedule_path(conn, :index))
       {:error, changeset} ->
+        changeset |> IO.inspect(label: "changeset") # DEBUG
         render(conn, "new.html", changeset: changeset, form_fields: form_fields())
     end
   end
@@ -31,6 +33,12 @@ defmodule Dynomizer.ScheduleController do
   def show(conn, %{"id" => id}) do
     schedule = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters)
     render(conn, "show.html", schedule: schedule, form_fields: form_fields())
+  end
+
+  def copy(conn, %{"id" => id}) do
+    schedule = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters)
+    changeset = Schedule.copy_changeset(schedule)
+    render(conn, "new.html", changeset: changeset, form_fields: form_fields())
   end
 
   def edit(conn, %{"id" => id}) do
@@ -116,8 +124,7 @@ defmodule Dynomizer.ScheduleController do
         {numeric, non_numeric} = Enum.split_with(fields, &(Enum.member?(numeric_fields, &1)))
         # "name" and "type" are Manager fields; they have different names in
         # Schedule and need not be in this list of fields.
-        non_numeric |> List.delete(:name) |> List.delete(:type)
-        Map.put(m, manager_name, %{non_numeric: non_numeric, numeric: numeric})
+        Map.put(m, manager_name, %{non_numeric: non_numeric -- [:name, :type], numeric: numeric})
       end)
     %{non_numeric_fields: all_fields -- numeric_fields,
       numeric_fields: numeric_fields,

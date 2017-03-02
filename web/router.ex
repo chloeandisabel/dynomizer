@@ -20,6 +20,7 @@ defmodule Dynomizer.Router do
     get "/", PageController, :index
     get "/schedules/snapshot_form", ScheduleController, :snapshot_form
     post "/schedules/snapshot", ScheduleController, :snapshot
+    get "/schedules/:id/copy", ScheduleController, :copy
     resources "/schedules", ScheduleController
   end
 
