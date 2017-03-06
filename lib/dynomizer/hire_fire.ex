@@ -30,11 +30,13 @@ defmodule Dynomizer.HireFire do
       client
       |> Manager.list
       |> Enum.find((&(&1.application_id == app_id && &1.name == schedule.dyno_type)))
+    updated_manager_fields =
+      manager
       |> inspect_log("scaling before")
       |> apply_schedule(schedule)
       |> inspect_log("scaling after")
 
-    client |> Manager.update(manager)
+    client |> Manager.update(manager.id, updated_manager_fields)
   end
 
   @doc """
@@ -116,7 +118,7 @@ defmodule Dynomizer.HireFire do
           schedule.numeric_parameters
           |> Enum.map(fn np ->
                key = String.to_atom(np.name)
-               current_val = manager[key]
+               current_val = Map.get(manager, key)
                {key, Rule.apply(np.rule, np.min, np.max, current_val)}
              end)
         |> Enum.into(%{})
@@ -124,7 +126,7 @@ defmodule Dynomizer.HireFire do
         %{manager | type: schedule.manager_type}
         |> Map.merge(Map.drop(schedule, @ignore_fields))
         |> Map.merge(new_numeric_vals)
-        |> Manager.updatable
+        |> Map.take(Manager.updatable_fields[schedule.manager_type])
       errors ->
         Enum.map(errors, fn {name, msg} ->
           Logger.error("schedule #{schedule.id} #{name}: #{msg}")
