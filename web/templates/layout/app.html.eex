@@ -12,7 +12,7 @@
     <script href="<%= static_path(@conn, "/js/app.js") %>"></script>
   </head>
 
-  <body>
+  <body data-js-view-name="<%= js_view_name(@conn, @view_template) %>">
     <div class="container">
       <header class="header">
         <nav role="navigation">
