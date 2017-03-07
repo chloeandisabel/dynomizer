@@ -12,15 +12,24 @@
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
 import 'phoenix_html';
+import * as Views from './views';
 import MainView from './views/main';
 
 let currentView = null;
 
-const handleDOMContentLoaded = () => {
-  const view = new MainView();
-  view.mount();
+const getView = () => {
+  const viewName = document.body.dataset.jsViewName;
+  const View = Views[viewName];
+  return View ? View : MainView;
 
-  currentView = view;
+}
+
+const handleDOMContentLoaded = () => {
+  const ViewClass = getView();
+  const View = new ViewClass();
+  View.mount();
+
+  currentView = View;
 };
 
 const handleDocumentUnload = () => {
