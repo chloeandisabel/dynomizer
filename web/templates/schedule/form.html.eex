@@ -34,8 +34,7 @@
   <% options = @form_fields.manager_fields_map |> Map.keys |> manager_type_select_options %>
   <div class="form-group">
     <%= label f, :manager_type, class: "control-label" %>
-    <%= select f, :manager_type, options, class: "form-control",
-        prompt: "Choose a manager type", onchange: "display_manager_fields();" %>
+    <%= select f, :manager_type, options, class: "form-control", prompt: "Choose a manager type" %>
     <%= error_tag f, :manager_type %>
   </div>
 
@@ -137,37 +136,3 @@
     <%= submit "Submit", class: "btn btn-primary" %>
   </div>
 <% end %>
-
-<script type="text/javascript">
-  function showHide(id, show, type) {
-    var e = document.getElementById(id);
-    if (e) {
-      var display, container;
-      if (type == "numeric") {
-        display  = show ? "table-row" : "none";
-        container = e.parentElement.parentElement;
-      }
-      else {
-        display  = show ? "inline" : "none";
-        container = e.parentElement;
-      }
-      container.style.display = display;
-    }
-  }
-
-  function display_manager_fields() {
-    for (i in NON_NUMERIC_FIELDS)
-      showHide("schedule_" + NON_NUMERIC_FIELDS[i], false, "non_numeric");
-    for (i in NUMERIC_FIELDS)
-      showHide("schedule_numeric_parameters_" + i + "_rule", false, "numeric");
-    var mf = document.getElementById("schedule_manager_type").value;
-    if (mf != undefined && mf != "") {
-      for (i in MANAGER_FIELDS[mf]["non_numeric"])
-        showHide("schedule_" + MANAGER_FIELDS[mf]["non_numeric"][i], true, "non_numeric");
-      for (i in MANAGER_FIELDS[mf]["numeric"])
-      showHide("schedule_numeric_parameters_" + i + "_rule", true, "numeric");
-    }
-  }
-
-  display_manager_fields();
-</script>
