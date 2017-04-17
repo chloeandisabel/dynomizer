@@ -1,11 +1,11 @@
 # Dynomizer
 
 Dynomizer automatically modifies [HireFire](https://hirefire.io/) Heroku
-Dyno scaling rules on schedule. It reads schedules from a database using
-`crontab`- or `at`-like scheduling specifications. HireFire rules modify
-manager numbers like minimimum and maximum by specifying absolute numbers
-(12, +3, -5), percentages (+25%, -20%), or multiples or divisors (*2, *0.5x,
-/2, /3).
+Dyno scaling rules on schedule. It reads scaling rules from a database and
+runs them based on their `crontab`- or `at`-like scheduling specifications.
+These rules modify HireFire manager numbers like minimimum and maximum by
+specifying absolute numbers (12, +3, -5), percentages (+25%, -20%), or
+multiples or divisors (*2, *0.5x, /2, /3).
 
 Dynomizer is a [Phoenix](http://www.phoenixframework.org/) application. The
 web interface is used to edit the records in the database.
@@ -16,10 +16,8 @@ When Dynomizer starts, it reads all of the records from the `schedules`
 database table and schedules them for execution. Every minute, the table is
 checked for new or changed records.
 
-The main page of the application is a dashboard with the following elements:
-- Status (running, stopped)
-- Start/stop buttons
-- List of schedules in memory with edit and delete links
+The main page of the application list all of the schedules in memory, with
+edit and delete links.
 
 ## Miscellaneous
 
