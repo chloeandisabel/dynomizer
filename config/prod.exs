@@ -28,9 +28,10 @@ config :dynomizer, Dynomizer.Repo,
   pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
   ssl: true
 
-# The module to use for actual dyno scaling.
+# The modules to use for actual dyno scaling.
 config :dynomizer,
-  scaler: Dynomizer.HireFire
+  heroku_scaler: Dynomizer.Heroku,
+  hirefire_scaler: Dynomizer.HireFire
 
 # Napper REST API client configuration
 config :napper,

@@ -47,6 +47,7 @@ defmodule Dynomizer.Mixfile do
      {:cowboy, "~> 1.0"},
      {:quantum, ">= 1.8.1"},
      {:apprentice, git: "https://github.com/chloeandisabel/apprentice.git"},
+     {:happi, git: "https://github.com/chloeandisabel/happi.git"},
      {:ex_doc, "~> 0.14", only: :dev}]
   end
 

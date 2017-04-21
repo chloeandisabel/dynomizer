@@ -1,0 +1,39 @@
+<h2>Listing HireFire schedules</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Application</th>
+      <th>Dyno type</th>
+      <th>Manager type</th>
+      <th>Schedule</th>
+      <th>Description</th>
+      <th>State</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for schedule <- @schedules do %>
+    <tr>
+      <td><%= schedule.application %></td>
+      <td><%= schedule.dyno_type %></td>
+      <td><%= manager_type_display schedule.manager_type %></td>
+      <td><%= schedule.schedule %></td>
+      <td><%= schedule.description %></td>
+      <td><%= schedule.state %></td>
+
+      <td class="text-right">
+        <%= link "Show", to: hirefire_schedule_path(@conn, :show, schedule), class: "btn btn-default btn-xs" %>
+        <%= link "Copy", to: hirefire_schedule_path(@conn, :copy, schedule), class: "btn btn-default btn-xs" %>
+        <%= link "Edit", to: hirefire_schedule_path(@conn, :edit, schedule), class: "btn btn-default btn-xs" %>
+        <%= link "Delete", to: hirefire_schedule_path(@conn, :delete, schedule), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+<%= link "New HireFire schedule", to: hirefire_schedule_path(@conn, :new) %>
+<br/><br/>
+<%= link "Snapshot current HireFire schedules", to: hirefire_schedule_path(@conn, :snapshot_form) %>

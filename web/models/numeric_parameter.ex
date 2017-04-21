@@ -1,7 +1,7 @@
 defmodule Dynomizer.NumericParameter do
   use Dynomizer.Web, :model
 
-  alias Dynomizer.Schedule
+  alias Dynomizer.HirefireSchedule, as: HFS
 
   schema "numeric_parameters" do
     field :name, :string, size: 32
@@ -9,7 +9,7 @@ defmodule Dynomizer.NumericParameter do
     field :min, :integer
     field :max, :integer
 
-    belongs_to :schedule, Schedule
+    belongs_to :hirefire_schedule, HFS
 
     timestamps()
   end

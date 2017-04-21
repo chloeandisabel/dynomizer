@@ -18,10 +18,16 @@ defmodule Dynomizer.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
-    get "/schedules/snapshot_form", ScheduleController, :snapshot_form
-    post "/schedules/snapshot", ScheduleController, :snapshot
-    get "/schedules/:id/copy", ScheduleController, :copy
-    resources "/schedules", ScheduleController
+
+    get "/heroku_schedules/snapshot_form", HerokuScheduleController, :snapshot_form
+    post "/heroku_schedules/snapshot", HerokuScheduleController, :snapshot
+    get "/heroku_schedules/:id/copy", HerokuScheduleController, :copy
+    resources "/heroku_schedules", HerokuScheduleController
+
+    get "/hirefire_schedules/snapshot_form", HirefireScheduleController, :snapshot_form
+    post "/hirefire_schedules/snapshot", HirefireScheduleController, :snapshot
+    get "/hirefire_schedules/:id/copy", HirefireScheduleController, :copy
+    resources "/hirefire_schedules", HirefireScheduleController
   end
 
   # Other scopes may use custom stacks.

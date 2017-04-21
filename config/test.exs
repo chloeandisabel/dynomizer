@@ -18,9 +18,10 @@ config :dynomizer, Dynomizer.Repo,
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
 
-# The module to use for actual dyno scaling.
+# The modules to use for actual dyno scaling.
 config :dynomizer,
-  scaler: Dynomizer.MockHireFire
+  heroku_scaler: Dynomizer.MockHeroku,
+  hirefire_scaler: Dynomizer.MockHireFire
 
 # Napper REST API client configuration
 config :napper,

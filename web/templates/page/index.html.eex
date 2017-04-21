@@ -1,0 +1,4 @@
+<ul class="index_links">
+  <li><%= link "Heroku Schedules", to: heroku_schedule_path(@conn, :index) %></li>
+  <li><%= link "HireFire Schedules", to: hirefire_schedule_path(@conn, :index) %></li>
+</ul>

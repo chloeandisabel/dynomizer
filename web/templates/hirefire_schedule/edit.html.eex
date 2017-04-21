@@ -1,0 +1,6 @@
+<h2>Edit HireFire schedule</h2>
+
+<%= render "form.html", changeset: @changeset,
+                        action: hirefire_schedule_path(@conn, :update, @schedule) %>
+
+<%= link "HireFire Schedules", to: hirefire_schedule_path(@conn, :index) %>

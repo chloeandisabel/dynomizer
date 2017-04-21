@@ -1,1 +1,19 @@
 /* This file is for your main application css. */
+a.appname:link, a.appname:visited, a.appname:hover, a.appname:active {
+  color: black;
+  text-decoration: none;
+}
+.logo img {
+  height: 100px;
+  padding-left: 4em;
+}
+
+ul.index_links {
+  padding-top: 2em;
+}
+ul.index_links li {
+  list-style: none;
+}
+ul.index_links a {
+  font-size: 1.5em;
+}

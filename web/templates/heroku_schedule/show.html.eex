@@ -1,0 +1,48 @@
+<h2>Show Heroku schedule</h2>
+
+<ul>
+
+  <li>
+    <strong>Description:</strong>
+    <%= @schedule.description %>
+  </li>
+
+  <li>
+    <strong>Application:</strong>
+    <%= @schedule.application %>
+  </li>
+
+  <li>
+    <strong>Dyno name:</strong>
+    <%= @schedule.dyno_name %>
+  </li>
+
+  <li>
+    <strong>State:</strong>
+    <%= @schedule.state %>
+  </li>
+
+  <li>
+    <strong>Schedule:</strong>
+    <%= @schedule.schedule %>
+  </li>
+
+  <li id="rule" style="display:none">
+    <strong>Rule:</strong>
+    <%= @schedule.rule %>
+  </li>
+
+  <li id="min" style="display:none">
+    <strong>Min:</strong>
+    <%= @schedule.min %>
+  </li>
+
+  <li id="max" style="display:none">
+    <strong>Max:</strong>
+    <%= @schedule.max %>
+  </li>
+</ul>
+
+<%= link "Edit", to: heroku_schedule_path(@conn, :edit, @schedule) %>
+
+<%= link "Heroku Schedules", to: heroku_schedule_path(@conn, :index) %>

@@ -1,14 +1,12 @@
-defmodule Dynomizer.ScheduleControllerTest do
+defmodule Dynomizer.HerokuScheduleControllerTest do
   use Dynomizer.ConnCase
 
-  alias Dynomizer.Schedule
+  alias Dynomizer.HerokuSchedule, as: HS
 
   @valid_attrs %{application: "appname", description: "some content",
-                 dyno_type: "web", manager_type: "Web.NewRelic.V2.ResponseTime",
-                 schedule: "30 4 * * * *",
-                 enabled: true, decrementable: true,
-                 state: nil}
-  @valid_get_attrs Map.take(@valid_attrs, [:application, :description, :dyno_type, :manager_type, :schedule])
+                 dyno_name: "web", schedule: "30 4 * * * *",
+                 rule: "+1", min: 0, max: 100, state: nil}
+  @valid_get_attrs Map.take(@valid_attrs, [:application, :description, :dyno_name, :schedule, :rule, :min, :max])
   @invalid_attrs %{}
 
   test "lists all entries on index", %{conn: conn} do
@@ -22,10 +20,10 @@ defmodule Dynomizer.ScheduleControllerTest do
   end
 
   test "creates resource and redirects when data is valid", %{conn: conn} do
-    schedule = Schedule.new_changeset(%Schedule{}, @valid_attrs) |> Ecto.Changeset.apply_changes
+    schedule = HS.new_changeset(%HS{}, @valid_attrs) |> Ecto.Changeset.apply_changes
     conn = post conn, schedule_path(conn, :create), schedule: form_attrs(schedule)
     assert redirected_to(conn) == schedule_path(conn, :index)
-    assert Repo.get_by(Schedule, @valid_get_attrs)
+    assert Repo.get_by(HS, @valid_get_attrs)
   end
 
   test "does not create resource and renders errors when data is invalid", %{conn: conn} do
@@ -34,7 +32,7 @@ defmodule Dynomizer.ScheduleControllerTest do
   end
 
   test "shows chosen resource", %{conn: conn} do
-    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! HS.new_changeset(%HS{}, @valid_attrs)
     conn = get conn, schedule_path(conn, :show, schedule)
     assert html_response(conn, 200) =~ "Show schedule"
   end
@@ -46,30 +44,30 @@ defmodule Dynomizer.ScheduleControllerTest do
   end
 
   test "renders form for editing chosen resource", %{conn: conn} do
-    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! HS.new_changeset(%HS{}, @valid_attrs)
     conn = get conn, schedule_path(conn, :edit, schedule)
     assert html_response(conn, 200) =~ "Edit schedule"
   end
 
   test "updates chosen resource and redirects when data is valid", %{conn: conn} do
-    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! HS.new_changeset(%HS{}, @valid_attrs)
     conn = put conn, schedule_path(conn, :update, schedule), schedule: form_attrs(schedule)
     assert redirected_to(conn) == schedule_path(conn, :show, schedule)
-    assert Repo.get_by(Schedule, @valid_get_attrs)
+    assert Repo.get_by(HS, @valid_get_attrs)
   end
 
   test "does not update chosen resource and renders errors when data is invalid", %{conn: conn} do
-    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! HS.new_changeset(%HS{}, @valid_attrs)
     params = form_attrs(schedule) |> Map.delete(:application)
     conn = put conn, schedule_path(conn, :update, schedule), schedule: params
     assert html_response(conn, 302) =~ "redirected"
   end
 
   test "deletes chosen resource", %{conn: conn} do
-    schedule = Repo.insert! Schedule.new_changeset(%Schedule{}, @valid_attrs)
+    schedule = Repo.insert! HS.new_changeset(%HS{}, @valid_attrs)
     conn = delete conn, schedule_path(conn, :delete, schedule)
     assert redirected_to(conn) == schedule_path(conn, :index)
-    refute Repo.get(Schedule, schedule.id)
+    refute Repo.get(HS, schedule.id)
   end
 
   test "shows applications returned by hirefire", %{conn: conn} do

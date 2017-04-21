@@ -42,9 +42,10 @@ config :dynomizer, Dynomizer.Repo,
   hostname: "localhost",
   pool_size: 10
 
-# The module to use for actual dyno scaling.
+# The modules to use for actual dyno scaling.
 config :dynomizer,
-  scaler: Dynomizer.HireFire
+  heroku_scaler: Dynomizer.Heroku,
+  hirefire_scaler: Dynomizer.HireFire
 
 # Napper REST API client configuration
 config :napper,

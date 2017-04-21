@@ -1,7 +1,7 @@
 defmodule Dynomizer.Scheduler do
   @moduledoc """
-  Loads Dynomizer.Schedule instances and schedules each for execution based
-  on its schedule method (cron or at). Uses Quantum
+  Loads Dynomizer.{Heroku,HireFire}Schedule instances and schedules each for
+  execution based on its schedule method (cron or at). Uses Quantum
   (https://github.com/c-rack/quantum-elixir) for cron-style scheduling and
   `Process.send_after` for at-style scheduling.
 
@@ -13,7 +13,8 @@ defmodule Dynomizer.Scheduler do
 
   The state is a two-element tuple. The first element is the module used to
   actually scale Heroku dynos, and is whatever was passed in to
-  `start_link`. The second element is a map whose keys are schedule ids and
+  `start_link`. The second element is a tuple of two maps, the first for
+  Heroku and the second for Hirefire. Each map's keys are schedule ids and
   values are tuples of the form `{schedule, arg}`. `arg` is whatever term
   can be used to identify and stop the job: either a Quantum job name or a
   `Process` timer, depending on the schedule's method.
@@ -23,7 +24,9 @@ defmodule Dynomizer.Scheduler do
 
   use GenServer
   require Logger
-  alias Dynomizer.{Repo, Schedule}
+  alias Dynomizer.Repo
+  alias Dynomizer.HerokuSchedule, as: HS
+  alias Dynomizer.HirefireSchedule, as: HFS
 
   # ================ public ================
 
@@ -31,8 +34,8 @@ defmodule Dynomizer.Scheduler do
   Pass in the module that will be used to scale dynos. Typically that will
   be `Dynomizer.Heroku`, but the test environment uses a mock.
   """
-  def start_link(scaler_module) do
-    GenServer.start_link(__MODULE__, {scaler_module, %{}}, name: __MODULE__)
+  def start_link(heroku_scaler_module, hirefire_scaler_module) do
+    GenServer.start_link(__MODULE__, {{heroku_scaler_module, hirefire_scaler_module}, {%{}, %{}}}, name: __MODULE__)
   end
 
   def init(state) do
@@ -53,7 +56,10 @@ defmodule Dynomizer.Scheduler do
     GenServer.call(__MODULE__, :refresh)
   end
 
-  @doc "Return running schedules map. Used for testing."
+  @doc """
+  Return running schedules tuple containing two maps, first for Heroku and
+  next for HireFire. Used for testing.
+  """
   def running do
     GenServer.call(__MODULE__, :running)
   end
@@ -61,14 +67,14 @@ defmodule Dynomizer.Scheduler do
   # ================ handlers ================
 
   # Run a single schedule.
-  def handle_call({:run, schedule}, _from, {scaler, _} = state) do
-    run_schedule(schedule, scaler)
+  def handle_call({:run, schedule}, _from, {scalers, _} = state) do
+    run_schedule(schedule, scalers)
     {:reply, :ok, state}
   end
 
   # For testing
-  def handle_call(:refresh, _from, {scaler, running}) do
-    {:reply, :ok, {scaler, reschedule(running)}}
+  def handle_call(:refresh, _from, {scalers, running}) do
+    {:reply, :ok, {scalers, reschedule(running)}}
   end
 
   # For testing
@@ -77,20 +83,21 @@ defmodule Dynomizer.Scheduler do
   end
 
   # Target of `schedule_refresh/0`.
-  def handle_info(:refresh, {scaler, running}) do
-    new_state = {scaler, reschedule(running)}
+  def handle_info(:refresh, {scalers, running}) do
+    new_state = {scalers, reschedule(running)}
     schedule_refresh()
     {:noreply, new_state}
   end
 
   # Target of `Process.send_after`.
-  def handle_info({:run, schedule}, {scaler, _} = state) do
-    run_schedule(schedule, scaler)
+  def handle_info({:run, schedule}, {scalers, _} = state) do
+    run_schedule(schedule, scalers)
     {:noreply, state}
   end
 
-  def terminate(reason, {_, running}) do
-    stop_jobs(running)
+  def terminate(reason, {_, {heroku, hirefire}}) do
+    stop_jobs(heroku)
+    stop_jobs(hirefire)
     if reason != :shutdown, do: Logger.info("Dynomizer.Scheduler.terminate: #{inspect reason}")
   end
 
@@ -100,21 +107,55 @@ defmodule Dynomizer.Scheduler do
     Process.send_after(self(), :refresh, @refresh_interval_millisecs)
   end
 
+  @doc """
+  Given a schedule string return either :cron or :at.
+
+  ## Examples
+
+      iex> alias Dynomizer.Scheduler, as: S
+      iex> S.method("3 5 * * *")
+      :cron
+      iex> alias Dynomizer.Scheduler, as: S
+      iex> S.method("2017-01-15 12:34:56")
+      :at
+  """
+  def method(str) do
+    if str |> String.trim |> String.split |> length == 5 do
+      :cron
+    else
+      :at
+    end
+  end
+
   # Loads schedules and sets their method virtual fields.
   defp load_schedules do
-    Schedule
-    |> Repo.all
-    |> Repo.preload(:numeric_parameters)
-    |> Enum.map(fn s -> %{s | method: Schedule.method(s)} end)
+    method_loader = fn s -> %{s | method: method(s)} end
+    hs =
+      HS
+      |> Repo.all
+      |> Enum.map(method_loader)
+    hfs =
+      HFS
+      |> Repo.all
+      |> Repo.preload(:numeric_parameters)
+      |> Enum.map(method_loader)
+    {hs, hfs}
   end
 
   # Stops deleted jobs, starts new jobs, and restarts modified ones. Returns
   # a map of the new set of running jobs.
-  defp reschedule(running) do
-    old_schedules = running |> Map.values |> Enum.map(fn {s, _} -> s end)
-    new_schedules = load_schedules()
-    {new, mod, del, unch} = Schedule.partition(old_schedules, new_schedules)
-    reschedule(new, mod, del, unch, running)
+  defp reschedule({old_heroku_scheds, old_hirefire_scheds}) do
+    get_sched = fn {s, _} -> s end
+    old_h = old_heroku_scheds |> Map.values |> Enum.map(get_sched)
+    old_hf = old_hirefire_scheds |> Map.values |> Enum.map(get_sched)
+
+    {new_h, new_hf} = load_schedules()
+
+    {new, mod, del, unch} = partition(old_h, new_h, &HS.partition_comparator/2)
+    reschedule(new, mod, del, unch, old_heroku_scheds)
+
+    {new, mod, del, unch} = partition(old_hf, new_hf, &HFS.partition_comparator/2)
+    reschedule(new, mod, del, unch, old_hirefire_scheds)
   end
 
   # Short-circuit the most common case: nothing has changed.
@@ -133,9 +174,13 @@ defmodule Dynomizer.Scheduler do
     |> Map.merge(started_map)
   end
 
-  defp run_schedule(schedule, scaler) do
+  defp run_schedule(%HS{} = schedule, {heroku_scaler, _}) do
     Logger.info "running #{inspect schedule}"
-    scaler.scale(schedule)
+    heroku_scaler.scale(schedule)
+  end
+  defp run_schedule(%HFS{} = schedule, {_, hirefire_scaler}) do
+    Logger.info "running #{inspect schedule}"
+    hirefire_scaler.scale(schedule)
   end
 
   # Start each scheduled job and return a state map.
@@ -147,23 +192,32 @@ defmodule Dynomizer.Scheduler do
 
   # Starts a job and returns whatever term can be used to identify and stop
   # the job.
-  defp start_job(%Schedule{method: :cron} = s) do
-    name = String.to_atom("job#{s.id}")
+  defp start_job(%HS{} = s) do
+    start_job(s.method, s, s.id, s.schedule)
+  end
+  defp start_job(%HFS{} = s) do
+    start_job(s.method, s, s.id, s.schedule)
+  end
+
+  defp start_job(:cron, sched, id, schedule_str) do
+    name = String.to_atom("job#{id}")
 
     job = %Quantum.Job{
-      schedule: s.schedule,
+      schedule: schedule_str,
       task: {__MODULE__, :run},
-      args: [s],
+      args: [sched],
     }
     :ok = Quantum.add_job(name, job)
     name
   end
-  defp start_job(%Schedule{method: :at} = s) do
-    at = Schedule.to_unix_milliseconds(s)
+  defp start_job(:at, sched, _id, at_str) do
+    at = with {:ok, dt, 0} <- DateTime.from_iso8601(at_str <> "Z") do
+           dt |> DateTime.to_unix(:milliseconds)
+         end
     now = DateTime.utc_now |> DateTime.to_unix(:milliseconds)
     wait = at - now
     if wait > 0 do
-      Process.send_after(self(), {:run, s}, wait)
+      Process.send_after(self(), {:run, sched}, wait)
     else
       nil
     end
@@ -185,6 +239,31 @@ defmodule Dynomizer.Scheduler do
   defp stop_job(:at, timer) do
     # It's OK if the timer has already been sent.
     Process.cancel_timer(timer)
+  end
+
+  # Given `oldies` and `newbies`, return a tuple of lists `{created, updated,
+  # deleted, unchanged}`. Used by the `Dynamo.Scheduler` to determine what has
+  # changed.
+  defp partition(oldies, newbies, comparator_func) do
+    # Create maps from ids to schedules.
+    mapify = fn xs -> xs |> Enum.map(&({&1.id, &1})) |> Enum.into(%{}) end
+    old_m = mapify.(oldies)
+    new_m = mapify.(newbies)
+    old_ids = Map.keys(old_m)
+    new_ids = Map.keys(new_m)
+
+    deleted_ids = old_ids -- new_ids
+    created_ids = new_ids -- old_ids
+    common_ids = MapSet.intersection(MapSet.new(old_ids), MapSet.new(new_ids))
+    {unchanged_ids, updated_ids} =
+      common_ids
+      |> Enum.partition(&(comparator_func.(Map.get(old_m, &1), Map.get(new_m, &1))))
+
+    take_scheds = fn (m, ids) -> m |> Map.take(ids) |> Map.values end
+    {take_scheds.(new_m, created_ids),
+     take_scheds.(new_m, updated_ids),
+     take_scheds.(old_m, deleted_ids),
+     take_scheds.(old_m, unchanged_ids)}
   end
 
   defp ids(schedules), do: schedules |> Enum.map(&(&1.id))

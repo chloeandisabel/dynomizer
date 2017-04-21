@@ -1,0 +1,6 @@
+<h2>Edit Heroku schedule</h2>
+
+<%= render "form.html", changeset: @changeset,
+                        action: heroku_schedule_path(@conn, :update, @schedule) %>
+
+<%= link "Heroku Schedules", to: heroku_schedule_path(@conn, :index) %>

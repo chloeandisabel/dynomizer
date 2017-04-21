@@ -1,4 +1,4 @@
-defmodule Dynomizer.ScheduleHelpers do
+defmodule Dynomizer.HirefireScheduleHelpers do
   @moduledoc """
   Conveniences for displaying schedules.
   """

@@ -1,6 +1,6 @@
-<h2>Snapshot current HireFire schedules</h2>
+<h2>Snapshot current Heroku schedules</h2>
 
-<%= form_for @changeset, schedule_path(@conn, :snapshot), fn f -> %>
+<%= form_for @changeset, heroku_schedule_path(@conn, :snapshot), fn f -> %>
   <div class="form-group">
     <%= label f, :application, class: "control-label" %>
     <%= select f, :application, @applications, class: "form-control",
@@ -11,4 +11,4 @@
   </div>
 <% end %>
 
-<%= link "Schedules", to: schedule_path(@conn, :index) %>
+<%= link "Schedules", to: heroku_schedule_path(@conn, :index) %>

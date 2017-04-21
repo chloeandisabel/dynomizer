@@ -11,7 +11,8 @@ defmodule Dynomizer.HireFire do
   @one_day_in_seconds 24 * 60 * 60
 
   require Logger
-  alias Dynomizer.{Rule, Schedule}
+  alias Dynomizer.Rule
+  alias Dynomizer.HirefireSchedule, as: HS
   alias Dynomizer.NumericParameter, as: NP
   alias Apprentice.HireFire.{Application, Manager}
 
@@ -50,8 +51,8 @@ defmodule Dynomizer.HireFire do
   end
 
   @doc """
-  Return a list of `Dynomizer.Schedule` structs created from the currently
-  defined `Apprentice.HireFire.Manager` structs associated with
+  Return a list of `Dynomizer.HirefireSchedule` structs created from the
+  currently defined `Apprentice.HireFire.Manager` structs associated with
   `application`. The schedule for each is arbitrarily set to one day in the
   past.
   """
@@ -68,7 +69,7 @@ defmodule Dynomizer.HireFire do
     |> Enum.map(&(schedule_from_manager(&1, application, at)))
   end
 
-  # Given a HireFire Manager struct, return a Schedule.
+  # Given a HireFire Manager struct, return a HirefireSchedule.
   defp schedule_from_manager(mgr, application, at) do
     nps =
       NP.numeric_parameter_names
@@ -77,7 +78,7 @@ defmodule Dynomizer.HireFire do
            %NP{name: to_string(n), rule: to_string(val), min: nil, max: nil}
          end)
       |> Enum.filter(fn np -> np.rule != "" end)
-    %Schedule{
+    %HS{
       application: application,
       dyno_type: mgr.name,
       manager_type: mgr.type,
@@ -135,7 +136,7 @@ defmodule Dynomizer.HireFire do
     end
   end
 
-  defp inapplicable_params(%Manager{type: t}, %Schedule{manager_type: t}), do: []
+  defp inapplicable_params(%Manager{type: t}, %HS{manager_type: t}), do: []
   defp inapplicable_params(manager, schedule) do
     schedule.numeric_parameters
     |> Enum.filter(fn np ->

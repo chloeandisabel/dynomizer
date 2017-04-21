@@ -1,87 +1,86 @@
-defmodule Dynomizer.ScheduleController do
+defmodule Dynomizer.HirefireScheduleController do
   use Dynomizer.Web, :controller
-  plug :authorize
 
-  alias Dynomizer.{Schedule, Auth}
+  alias Dynomizer.HirefireSchedule, as: HFS
   alias Apprentice.HireFire.Manager
 
   def index(conn, _params) do
-    schedules = Repo.all(from s in Schedule, order_by: s.id)
+    schedules = Repo.all(from s in HFS, order_by: s.id)
     render(conn, "index.html", schedules: schedules)
   end
 
   def new(conn, _params) do
-    changeset = Schedule.new_changeset(%Schedule{})
+    changeset = HFS.new_changeset(%HFS{})
     render(conn, "new.html", changeset: changeset, form_fields: form_fields())
   end
 
   def create(conn, %{"schedule" => schedule_params}) do
-    changeset = Schedule.changeset(%Schedule{}, schedule_params)
+    changeset = HFS.changeset(%HFS{}, schedule_params)
 
     case Repo.insert(changeset) do
       {:ok, _schedule} ->
         conn
-        |> put_flash(:info, "Schedule created successfully.")
-        |> redirect(to: schedule_path(conn, :index))
+        |> put_flash(:info, "HFS created successfully.")
+        |> redirect(to: hirefire_schedule_path(conn, :index))
       {:error, changeset} ->
         render(conn, "new.html", changeset: changeset, form_fields: form_fields())
     end
   end
 
   def show(conn, %{"id" => id}) do
-    schedule = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters)
+    schedule = Repo.get!(HFS, id) |> Repo.preload(:numeric_parameters)
     render(conn, "show.html", schedule: schedule, form_fields: form_fields())
   end
 
   def copy(conn, %{"id" => id}) do
-    changeset = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters) |> Schedule.copy_changeset
+    changeset = Repo.get!(HFS, id) |> Repo.preload(:numeric_parameters) |> HFS.copy_changeset
     render(conn, "new.html", changeset: changeset, form_fields: form_fields())
   end
 
   def edit(conn, %{"id" => id}) do
-    schedule = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters)
-    changeset = Schedule.changeset(schedule)
+    schedule = Repo.get!(HFS, id) |> Repo.preload(:numeric_parameters)
+    changeset = HFS.changeset(schedule)
     render(conn, "edit.html", schedule: schedule, changeset: changeset, form_fields: form_fields())
   end
 
   def update(conn, %{"id" => id, "schedule" => schedule_params}) do
-    schedule = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters)
-    changeset = Schedule.changeset(schedule, schedule_params)
+    schedule = Repo.get!(HFS, id) |> Repo.preload(:numeric_parameters)
+    changeset = HFS.changeset(schedule, schedule_params)
 
     case Repo.update(changeset) do
       {:ok, schedule} ->
         conn
-        |> put_flash(:info, "Schedule updated successfully.")
-        |> redirect(to: schedule_path(conn, :show, schedule))
+        |> put_flash(:info, "HFS updated successfully.")
+        |> redirect(to: hirefire_schedule_path(conn, :show, schedule))
       {:error, changeset} ->
         render(conn, "edit.html", schedule: schedule, changeset: changeset, form_fields: form_fields())
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    schedule = Repo.get!(Schedule, id) |> Repo.preload(:numeric_parameters)
+    schedule = Repo.get!(HFS, id) |> Repo.preload(:numeric_parameters)
 
     # Here we use delete! (with a bang) because we expect
     # it to always work (and if it does not, it will raise).
     Repo.delete!(schedule)
 
     conn
-    |> put_flash(:info, "Schedule deleted successfully.")
-    |> redirect(to: schedule_path(conn, :index))
+    |> put_flash(:info, "HireFire schedule deleted successfully.")
+    |> redirect(to: hirefire_schedule_path(conn, :index))
   end
 
   def snapshot_form(conn, _params) do
     try do
-      {:ok, scaler_module} = Application.fetch_env(:dynomizer, :scaler)
+      {:ok, scaler_module} = Application.fetch_env(:dynomizer, :hirefire_scaler)
       applications = scaler_module.applications
-      changeset = Schedule.new_changeset(%Schedule{})
+      changeset = HFS.new_changeset(%HFS{})
       render(conn, "snapshot_form.html", applications: applications,
         changeset: changeset, form_fields: form_fields())
     rescue
       err ->
         conn
         |> put_flash(:info, "Error retrieving application names: #{inspect err}")
-        |> redirect(to: schedule_path(conn, :index))
+        |> redirect(to: hirefire_schedule_path(conn, :index))
     end
   end
 
@@ -89,26 +88,17 @@ defmodule Dynomizer.ScheduleController do
     try do
       {:ok, scaler_module} = Application.fetch_env(:dynomizer, :scaler)
       scaler_module.snapshot(application)
-      |> Enum.map(&(Schedule.changeset(&1)))
+      |> Enum.map(&(HFS.changeset(&1)))
       |> Enum.map(&(Repo.insert!(&1)))
 
       conn
       |> put_flash(:info, "Snapshot created successfully.")
-      |> redirect(to: schedule_path(conn, :index))
+      |> redirect(to: hirefire_schedule_path(conn, :index))
     rescue
       err ->
         conn
         |> put_flash(:info, "Error snapshotting schedules: #{inspect err}")
-        |> redirect(to: schedule_path(conn, :snapshot_form))
-    end
-  end
-
-  defp authorize(conn, _opts) do
-    if conn.assigns.authorized do
-      conn
-    else
-      conn
-      |> Auth.request_authorization
+        |> redirect(to: hirefire_schedule_path(conn, :snapshot_form))
     end
   end
 
@@ -120,7 +110,7 @@ defmodule Dynomizer.ScheduleController do
       |> Enum.reduce(%{}, fn {manager_name, fields}, m ->
         {numeric, non_numeric} = Enum.split_with(fields, &(Enum.member?(numeric_fields, &1)))
         # "name" and "type" are Manager fields; they have different names in
-        # Schedule and need not be in this list of fields.
+        # HirefireSchedule and need not be in this list of fields.
         Map.put(m, manager_name, %{non_numeric: non_numeric -- [:name, :type], numeric: numeric})
       end)
     %{non_numeric_fields: all_fields -- numeric_fields,

@@ -6,7 +6,13 @@ defmodule Dynomizer.Auth do
   end
 
   def call(conn, _opts) do
-    assign(conn, :authorized, authorized?(conn))
+    authed = authorized?(conn)
+    assign(conn, :authorized, authed)
+    if authed do
+      conn
+    else
+      request_authorization(conn)
+    end
   end
 
   def request_authorization(conn) do

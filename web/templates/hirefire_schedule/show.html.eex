@@ -5,7 +5,7 @@
   var NON_NUMERIC_FIELDS = FORM_FIELDS["non_numeric_fields"];
 </script>
 
-<h2>Show schedule</h2>
+<h2>Show HireFire schedule</h2>
 
 <ul>
 
@@ -104,9 +104,9 @@
   </li>
 </ul>
 
-<%= link "Edit", to: schedule_path(@conn, :edit, @schedule) %>
+<%= link "Edit", to: hirefire_schedule_path(@conn, :edit, @schedule) %>
 
-<%= link "Schedules", to: schedule_path(@conn, :index) %>
+<%= link "HireFire Schedules", to: hirefire_schedule_path(@conn, :index) %>
 
 <script type="text/javascript">
   function showHide(id, show) {

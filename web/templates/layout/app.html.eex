@@ -18,11 +18,14 @@
         <nav role="navigation">
           <ul class="nav nav-pills pull-right">
             <li><a href="https://github.com/chloeandisabel/dynomizer">README</a></li>
+            <li><%= link "Home", to: page_path(@conn, :index) %></li>
           </ul>
         </nav>
         <span class="logo">
-          <h1>Dynomizer</h1>
-          <p class="lead">Automatically scale Heroku Dynos on schedule using HireFire</p>
+          <h1><%= link "Dynomizer", to: page_path(@conn, :index), class: "appname" %></h1>
+          <p class="lead">Scheduled scaling of Heroku Dynos via
+          Heroku or HireFire</p>
+          <img src="images/heroku-features-scaling-dynos.png"/>
         </span>
       </header>
 

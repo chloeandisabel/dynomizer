@@ -1,10 +1,11 @@
 # Dynomizer
 
-Dynomizer automatically modifies [HireFire](https://hirefire.io/) Heroku
-Dyno scaling rules on schedule. It reads scaling rules from a database and
-runs them based on their `crontab`- or `at`-like scheduling specifications.
-These rules modify HireFire manager numbers like minimimum and maximum by
-specifying absolute numbers (12, +3, -5), percentages (+25%, -20%), or
+Dynomizer automatically modifies [Heroku](https://heroku.com/)
+and [HireFire](https://hirefire.io/) Dyno scaling rules on schedule. It
+reads scaling rules from a database and runs them based on their `crontab`-
+or `at`-like scheduling specifications. These rules modify Heroku Dyno
+formation quantities or HireFire manager numbers like minimimum and maximum
+by specifying absolute numbers (12, +3, -5), percentages (+25%, -20%), or
 multiples or divisors (*2, *0.5x, /2, /3).
 
 Dynomizer is a [Phoenix](http://www.phoenixframework.org/) application. The
@@ -29,12 +30,22 @@ format.
 
 ## Configuration
 
-A `Dynomizer.Schedule` record has a number of fields which map to the
-exposed Manager API values in the HireFire API. Not all HireFire manager
+A `Dynomizer.HerokuSchedule` record  has a number of fields which map to
+the exposed Formation API values in the HireFire API.
+
+- `application` - Heroku application name
+- `dyno_type` - Heroku dyno type
+- `rule` - See below
+- `min` - Minimum dyno count, default is 0
+- `max` - Maximum dyno count, default is 0xffffffff
+- `schedule` - See below
+- `description` - Optional
+
+A `Dynomizer.HirefireSchedule` record has a number of fields which map to
+the exposed Manager API values in the HireFire API. Not all HireFire manager
 values are exposed via their API (for example, web server response times and
-upscale and downscale sensitivity and timeout settings), and not all of
-the exposed values are used by Dynomizer (for example, notification
-settings).
+upscale and downscale sensitivity and timeout settings), and not all of the
+exposed values are used by Dynomizer (for example, notification settings).
 
 - `application` - Heroku application name
 - `dyno_type` - Heroku dyno type
@@ -73,12 +84,13 @@ not wind up with the original number. For example 100 + 30% = 130, but 130 -
 
 ## Schedules
 
-Schedules are either `crontab` strings or timestamps. All times are treated
-as UTC.
+Schedules are either `crontab` strings or timestamps. All times are
+treated as UTC.
 
 # Deploying
 
-To deploy to Heroku, see http://www.phoenixframework.org/docs/heroku.
+To deploy Dynomizer to Heroku, see
+http://www.phoenixframework.org/docs/heroku.
 
 ## Environment
 
@@ -106,12 +118,14 @@ This is a stock Phoenix app with only a few additions and tweaks. For the
 rest of this section, assume all module names are prefixed with
 `Dynomizer.`.
 
-The `Scheduler` model is in `web/models`. The controller, view, and
-templates for editing them are all in `web/{controllers,views,templates}`.
+The `HirefireSchedule` and `HerokuSchedule` models are in `web/models`. The
+controller, view, and templates for editing them are all in
+`web/{controllers,views,templates}`.
 
 The `lib/dynomizer` directory contains the modules that schedule and run the
-dyno scaling: `Scheduler`, `Rule`, and `Heroku`. The two other modules in
-this directory (`Endpoint` and `Repo`) are standard Phoenix modules.
+dyno scaling: `Scheduler`, `Rule`, `Heroku`, and `HireFire`. The two other
+modules in this directory (`Endpoint` and `Repo`) are standard Phoenix
+modules.
 
 The scheduler is a GenServer that is managed by the app, which means that it
 will be auto-restarted if anything goes wrong. The scheduler runs its

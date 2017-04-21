@@ -1,4 +1,4 @@
-defmodule Dynomizer.MockHireFire do
+defmodule Dynomizer.MockHeroku do
   @moduledoc """
   Testing version of HireFire scaler.
   """
@@ -9,7 +9,7 @@ defmodule Dynomizer.MockHireFire do
 
   use GenServer
   alias Dynomizer.Rule
-  alias Dynomizer.HirefireSchedule, as: HFS
+  alias Dynomizer.HerokuSchedule, as: HS
 
   # ================ public API ================
 
@@ -77,29 +77,20 @@ defmodule Dynomizer.MockHireFire do
   end
 
   def handle_call({:snapshot, app}, _from, state) do
-    s1 = app_schedule(app, "web", "ResponseTime")
-    s2 = app_schedule(app, "job_worker", "JobQueue")
+    s1 = app_schedule(app, "web")
+    s2 = app_schedule(app, "job_worker")
     {:reply, [s1, s2], state}
   end
 
   # ================ helpers ================
 
-  defp app_schedule(app, dyno_type, manager_type_suffix) do
+  defp app_schedule(app, dyno_name) do
     at =
       %{NaiveDateTime.utc_now() | microsecond: {0, 0}}
       |> NaiveDateTime.add(-@one_day_in_seconds)
       |> NaiveDateTime.to_string
-    mgr_type = "Manager::Web::HireFire::#{manager_type_suffix}"
-    %HFS{application: app, description: "current #{app} #{mgr_type}",
-         dyno_type: dyno_type,
-         manager_type: mgr_type,
-         schedule: at,
-         enabled: true, decrementable: true,
-         numeric_parameters: [
-           %{name: "minimum", rule: "+5", min: 1, max: 100},
-           %{name: "maximum", rule: "+5", min: 1, max: 100},
-           %{name: "ratio", rule: "+20", min: 0, max: 100}
-         ],
-         state: nil}
+    %HS{application: app, description: "current #{app} #{mgr_type}",
+        dyno_name: dyno_name, schedule: at, rule: "+1", min: 0, max: 100,
+        state: nil}
   end
 end
