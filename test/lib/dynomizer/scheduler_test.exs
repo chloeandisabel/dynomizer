@@ -4,55 +4,71 @@ defmodule Dynomizer.SchedulerTest do
   alias Dynomizer.{Scheduler, Schedule, Repo}
   alias Dynomizer.MockHireFire, as: HF
 
-  @future_at NaiveDateTime.utc_now |> NaiveDateTime.add(1_000_000, :seconds) |> to_string
-  @past_at NaiveDateTime.utc_now |> NaiveDateTime.add(-1_000_000, :seconds) |> to_string
-  @cron_schedule %{application: "app", description: "some content", dyno_type: "web",
-                   manager_type: "Web.NewRelic.V2.ResponseTime",
-                   numeric_parameters: [
-                     %{name: "minimum", rule: "+5", min: 1, max: 100},
-                     %{name: "maximum", rule: "+5", min: 1, max: 100},
-                     %{name: "ratio", rule: "+20", min: 0, max: 100}
-                   ],
-                   schedule: "30 4 * * *", state: nil}
-  @at_schedule %{application: "app", description: "some content", dyno_type: "web",
-                 manager_type: "Web.NewRelic.V2.ResponseTime",
-                 numeric_parameters: [
-                   %{name: "minimum", rule: "+5", min: 1, max: 100},
-                   %{name: "maximum", rule: "+5", min: 1, max: 100},
-                   %{name: "ratio", rule: "+20", min: 0, max: 100}
-                 ],
-                 schedule: @future_at, state: nil}
-  @past_at_schedule %{application: "app", description: "some content", dyno_type: "web",
-                      manager_type: "Web.NewRelic.V2.ResponseTime",
-                      numeric_parameters: [
-                        %{name: "minimum", rule: "+5", min: 1, max: 100},
-                        %{name: "maximum", rule: "+5", min: 1, max: 100},
-                        %{name: "ratio", rule: "+20", min: 0, max: 100}
-                      ],
-                      schedule: @past_at, state: nil}
+  @future_at NaiveDateTime.utc_now() |> NaiveDateTime.add(1_000_000, :seconds) |> to_string
+  @past_at NaiveDateTime.utc_now() |> NaiveDateTime.add(-1_000_000, :seconds) |> to_string
+  @cron_schedule %{
+    application: "app",
+    description: "some content",
+    dyno_type: "web",
+    manager_type: "Web.NewRelic.V2.ResponseTime",
+    numeric_parameters: [
+      %{name: "minimum", rule: "+5", min: 1, max: 100},
+      %{name: "maximum", rule: "+5", min: 1, max: 100},
+      %{name: "ratio", rule: "+20", min: 0, max: 100}
+    ],
+    schedule: "30 4 * * *",
+    state: nil
+  }
+  @at_schedule %{
+    application: "app",
+    description: "some content",
+    dyno_type: "web",
+    manager_type: "Web.NewRelic.V2.ResponseTime",
+    numeric_parameters: [
+      %{name: "minimum", rule: "+5", min: 1, max: 100},
+      %{name: "maximum", rule: "+5", min: 1, max: 100},
+      %{name: "ratio", rule: "+20", min: 0, max: 100}
+    ],
+    schedule: @future_at,
+    state: nil
+  }
+  @past_at_schedule %{
+    application: "app",
+    description: "some content",
+    dyno_type: "web",
+    manager_type: "Web.NewRelic.V2.ResponseTime",
+    numeric_parameters: [
+      %{name: "minimum", rule: "+5", min: 1, max: 100},
+      %{name: "maximum", rule: "+5", min: 1, max: 100},
+      %{name: "ratio", rule: "+20", min: 0, max: 100}
+    ],
+    schedule: @past_at,
+    state: nil
+  }
 
   setup context do
-    HF.reset
+    HF.reset()
 
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
     Ecto.Adapters.SQL.Sandbox.mode(Repo, {:shared, self()})
 
-    attrs = 
-      context[:attrs] || [@cron_schedule, @at_schedule, @past_at_schedule]
+    attrs = context[:attrs] || [@cron_schedule, @at_schedule, @past_at_schedule]
+
     schedules =
       attrs
       |> Enum.map(fn a ->
-           Schedule.changeset(%Schedule{}, a) |> Repo.insert!
-         end)
-    Scheduler.refresh
+        Schedule.changeset(%Schedule{}, a) |> Repo.insert!()
+      end)
+
+    Scheduler.refresh()
     {:ok, [schedules: schedules]}
   end
 
   # ================ refresh ================
 
   test "refresh starts scheduled jobs" do
-    running = Scheduler.running
-    assert running |> Map.keys |> length == 3
+    running = Scheduler.running()
+    assert running |> Map.keys() |> length == 3
   end
 
   test "refresh starts one :cron job" do
@@ -69,6 +85,7 @@ defmodule Dynomizer.SchedulerTest do
       running_jobs(:at)
       |> Enum.map(fn {_, arg} -> arg end)
       |> Enum.partition(&(&1 != nil))
+
     assert length(started_args) == 1
     assert length(ignored_args) == 1
   end
@@ -84,13 +101,14 @@ defmodule Dynomizer.SchedulerTest do
       running_jobs(:at)
       |> Enum.filter(fn {_, arg} -> arg != nil end)
       |> hd
+
     assert Process.read_timer(at_arg) > 0
   end
 
   test "refresh deletes deleted schedules" do
     {cron_schedule, _} = running_jobs(:cron) |> hd
     Repo.delete!(cron_schedule)
-    Scheduler.refresh
+    Scheduler.refresh()
 
     assert length(Quantum.jobs()) == 0
     assert length(running_jobs(:cron)) == 0
@@ -99,12 +117,16 @@ defmodule Dynomizer.SchedulerTest do
   # ================ run ================
 
   test "run scales dynos" do
-    s = %Schedule{application: "app", dyno_type: "dyno_type",
-                  numeric_parameters: [
-                    %{name: "minimum", rule: "+5", min: 1, max: 100},
-                    %{name: "maximum", rule: "+5", min: 1, max: 100},
-                    %{name: "ratio", rule: "+20", min: 0, max: 100}
-                  ]}
+    s = %Schedule{
+      application: "app",
+      dyno_type: "dyno_type",
+      numeric_parameters: [
+        %{name: "minimum", rule: "+5", min: 1, max: 100},
+        %{name: "maximum", rule: "+5", min: 1, max: 100},
+        %{name: "ratio", rule: "+20", min: 0, max: 100}
+      ]
+    }
+
     assert Scheduler.run(s) == :ok
     scaled = HF.scaled()
     assert length(scaled) == 1
@@ -112,12 +134,16 @@ defmodule Dynomizer.SchedulerTest do
   end
 
   test "run observes min" do
-    s = %Schedule{application: "app", dyno_type: "dyno_type",
-                  numeric_parameters: [
-                    %{name: "minimum", rule: "+1", min: 5, max: 100},
-                    %{name: "maximum", rule: "+5", min: 5, max: 100},
-                    %{name: "ratio", rule: "+20", min: 0, max: 100}
-                  ]}
+    s = %Schedule{
+      application: "app",
+      dyno_type: "dyno_type",
+      numeric_parameters: [
+        %{name: "minimum", rule: "+1", min: 5, max: 100},
+        %{name: "maximum", rule: "+5", min: 5, max: 100},
+        %{name: "ratio", rule: "+20", min: 0, max: 100}
+      ]
+    }
+
     assert Scheduler.run(s) == :ok
     scaled = HF.scaled()
     assert length(scaled) == 1
@@ -125,12 +151,16 @@ defmodule Dynomizer.SchedulerTest do
   end
 
   test "run observes max" do
-    s = %Schedule{application: "app", dyno_type: "dyno_type",
-                  numeric_parameters: [
-                    %{name: "minimum", rule: "+5", min: 1, max: 100},
-                    %{name: "maximum", rule: "+200", min: 1, max: 100},
-                    %{name: "ratio", rule: "+20", min: 0, max: 100}
-                  ]}
+    s = %Schedule{
+      application: "app",
+      dyno_type: "dyno_type",
+      numeric_parameters: [
+        %{name: "minimum", rule: "+5", min: 1, max: 100},
+        %{name: "maximum", rule: "+200", min: 1, max: 100},
+        %{name: "ratio", rule: "+20", min: 0, max: 100}
+      ]
+    }
+
     assert Scheduler.run(s) == :ok
     scaled = HF.scaled()
     assert length(scaled) == 1
@@ -142,7 +172,7 @@ defmodule Dynomizer.SchedulerTest do
   # Returns the list of running {schedule, arg} jobs that are of the given
   # method (:cron or :at).
   defp running_jobs(method) do
-    Scheduler.running
+    Scheduler.running()
     |> Enum.filter(fn {_, {s, _}} -> Schedule.method(s) == method end)
     |> Enum.map(fn {_, schedule_and_arg} -> schedule_and_arg end)
   end

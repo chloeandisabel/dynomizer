@@ -69,7 +69,7 @@ defmodule Dynomizer.MockHeroku do
     np = Enum.find(schedule.numeric_parameters, fn np -> np.name == "maximum" end)
     new_max = Rule.apply(np.rule, np.min, np.max, max)
 
-    {:reply, {new_min, new_max}, {new_min, new_max, [{new_min, new_max, schedule}|memory]}}
+    {:reply, {new_min, new_max}, {new_min, new_max, [{new_min, new_max, schedule} | memory]}}
   end
 
   def handle_call(:applications, _from, state) do
@@ -88,9 +88,17 @@ defmodule Dynomizer.MockHeroku do
     at =
       %{NaiveDateTime.utc_now() | microsecond: {0, 0}}
       |> NaiveDateTime.add(-@one_day_in_seconds)
-      |> NaiveDateTime.to_string
-    %HS{application: app, description: "current #{app} #{mgr_type}",
-        dyno_name: dyno_name, schedule: at, rule: "+1", min: 0, max: 100,
-        state: nil}
+      |> NaiveDateTime.to_string()
+
+    %HS{
+      application: app,
+      description: "current #{app} #{mgr_type}",
+      dyno_name: dyno_name,
+      schedule: at,
+      rule: "+1",
+      min: 0,
+      max: 100,
+      state: nil
+    }
   end
 end

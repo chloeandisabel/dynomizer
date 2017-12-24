@@ -69,7 +69,7 @@ defmodule Dynomizer.MockHireFire do
     np = Enum.find(schedule.numeric_parameters, fn np -> np.name == "maximum" end)
     new_max = Rule.apply(np.rule, np.min, np.max, max)
 
-    {:reply, {new_min, new_max}, {new_min, new_max, [{new_min, new_max, schedule}|memory]}}
+    {:reply, {new_min, new_max}, {new_min, new_max, [{new_min, new_max, schedule} | memory]}}
   end
 
   def handle_call(:applications, _from, state) do
@@ -88,18 +88,24 @@ defmodule Dynomizer.MockHireFire do
     at =
       %{NaiveDateTime.utc_now() | microsecond: {0, 0}}
       |> NaiveDateTime.add(-@one_day_in_seconds)
-      |> NaiveDateTime.to_string
+      |> NaiveDateTime.to_string()
+
     mgr_type = "Manager::Web::HireFire::#{manager_type_suffix}"
-    %HFS{application: app, description: "current #{app} #{mgr_type}",
-         dyno_type: dyno_type,
-         manager_type: mgr_type,
-         schedule: at,
-         enabled: true, decrementable: true,
-         numeric_parameters: [
-           %{name: "minimum", rule: "+5", min: 1, max: 100},
-           %{name: "maximum", rule: "+5", min: 1, max: 100},
-           %{name: "ratio", rule: "+20", min: 0, max: 100}
-         ],
-         state: nil}
+
+    %HFS{
+      application: app,
+      description: "current #{app} #{mgr_type}",
+      dyno_type: dyno_type,
+      manager_type: mgr_type,
+      schedule: at,
+      enabled: true,
+      decrementable: true,
+      numeric_parameters: [
+        %{name: "minimum", rule: "+5", min: 1, max: 100},
+        %{name: "maximum", rule: "+5", min: 1, max: 100},
+        %{name: "ratio", rule: "+20", min: 0, max: 100}
+      ],
+      state: nil
+    }
   end
 end

@@ -4,16 +4,20 @@ defmodule Dynomizer.ScheduleTest do
 
   alias Dynomizer.Schedule
 
-  @valid_base_attrs %{application: "appname", description: "some content",
-                      dyno_type: "web",
-                      manager_type: "Manager::Web::NewRelic::V2::ResponseTime",
-                      enabled: true, decrementable: true,
-                      numeric_parameters: [
-                        %{name: "minimum", rule: "+5", min: 1, max: 100},
-                        %{name: "maximum", rule: "+5", min: 1, max: 100},
-                        %{name: "ratio", rule: "+20", min: 0, max: 100}
-                      ],
-                      state: nil}
+  @valid_base_attrs %{
+    application: "appname",
+    description: "some content",
+    dyno_type: "web",
+    manager_type: "Manager::Web::NewRelic::V2::ResponseTime",
+    enabled: true,
+    decrementable: true,
+    numeric_parameters: [
+      %{name: "minimum", rule: "+5", min: 1, max: 100},
+      %{name: "maximum", rule: "+5", min: 1, max: 100},
+      %{name: "ratio", rule: "+20", min: 0, max: 100}
+    ],
+    state: nil
+  }
   @valid_cron_attrs Map.merge(@valid_base_attrs, %{schedule: "30 4 * * *"})
   @valid_at_attrs Map.merge(@valid_base_attrs, %{schedule: "2017-01-04 20:57:43"})
   @invalid_attrs %{}

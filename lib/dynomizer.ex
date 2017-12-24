@@ -9,6 +9,7 @@ defmodule Dynomizer do
     # Define workers and child supervisors to be supervised
     {:ok, heroku_scaler_module} = Application.fetch_env(:dynomizer, :heroku_scaler)
     {:ok, hirefire_scaler_module} = Application.fetch_env(:dynomizer, :hirefire_scaler)
+
     children = [
       # Start the Ecto repository
       supervisor(Dynomizer.Repo, []),

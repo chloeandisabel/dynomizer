@@ -20,7 +20,7 @@ defmodule Dynomizer.Rule do
   """
 
   @default_min 0
-  @default_max 0xffffffff
+  @default_max 0xFFFFFFFF
 
   @doc """
   Given a rule string, min, max, and an integer, return the result of
@@ -89,15 +89,18 @@ defmodule Dynomizer.Rule do
   def parse(rule_str) do
     len = String.length(rule_str)
     first_char = String.at(rule_str, 0)
-    last_char = String.at(rule_str, len-1)
+    last_char = String.at(rule_str, len - 1)
+
     cond do
       first_char == "*" || first_char == "/" ->
         sym = if first_char == "*", do: :multiply, else: :divide
-        {num, _} = rule_str |> String.slice(1, len-1) |> String.trim |> Float.parse
+        {num, _} = rule_str |> String.slice(1, len - 1) |> String.trim() |> Float.parse()
         {sym, num}
+
       last_char == "%" ->
-        {sign, number} = signed_number(String.slice(rule_str, 0, len-1))
+        {sign, number} = signed_number(String.slice(rule_str, 0, len - 1))
         {:percent, sign, number}
+
       true ->
         {sign, number} = signed_number(rule_str)
         {:number, sign, number}
@@ -134,39 +137,48 @@ defmodule Dynomizer.Rule do
   # (increment), or -1 (decrement).
   defp signed_number(s) do
     first_char = String.at(s, 0)
-    sign = case first_char do
-             "-" -> -1
-             "+" -> 1
-             _ -> nil
-           end
+
+    sign =
+      case first_char do
+        "-" -> -1
+        "+" -> 1
+        _ -> nil
+      end
+
     slice_start = if sign?(first_char), do: 1, else: 0
     maxlen = String.length(s)
-    {num, _} = s |> String.slice(slice_start, maxlen) |> Float.parse
+    {num, _} = s |> String.slice(slice_start, maxlen) |> Float.parse()
     {sign, num}
   end
 
   def apply_rule({:number, nil, num}, _i) do
     round(num)
   end
+
   def apply_rule({:number, sign, num}, i) do
     i + round(sign * num)
   end
+
   def apply_rule({:percent, nil, num}, i) do
     round(i * num / 100.0)
   end
+
   def apply_rule({:percent, sign, num}, i) do
     i + round(i * sign * num / 100.0)
   end
+
   def apply_rule({:multiply, num}, i) do
     round(i * num)
   end
+
   def apply_rule({:divide, num}, i) do
-    round((i * 1.0) / (num * 1.0))
+    round(i * 1.0 / (num * 1.0))
   end
 
   defp clamp(i, nil, nil), do: clamp(i, @default_min, @default_max)
   defp clamp(i, min, nil), do: clamp(i, min, @default_max)
   defp clamp(i, nil, max), do: clamp(i, @default_min, max)
+
   defp clamp(i, min, max) do
     i |> max(min) |> min(max)
   end

@@ -4,8 +4,14 @@ defmodule Dynomizer.HireFire do
   """
 
   @ignore_fields [
-    :application, :dyno_type, :schedule, :description, :state, :method,
-    :inserted_at, :updated_at
+    :application,
+    :dyno_type,
+    :schedule,
+    :description,
+    :state,
+    :method,
+    :inserted_at,
+    :updated_at
   ]
   @inapplicable_error "can not apply relative change without an initial value"
   @one_day_in_seconds 24 * 60 * 60
@@ -21,16 +27,19 @@ defmodule Dynomizer.HireFire do
   type, and a few other values.
   """
   def scale(schedule) do
-    client = Napper.api_client
+    client = Napper.api_client()
+
     app_id =
       client
-      |> Application.list
+      |> Application.list()
       |> Enum.find(fn app -> app.name == schedule.application end)
       |> Map.get(:id)
+
     manager =
       client
-      |> Manager.list
-      |> Enum.find((&(&1.application_id == app_id && &1.name == schedule.dyno_type)))
+      |> Manager.list()
+      |> Enum.find(&(&1.application_id == app_id && &1.name == schedule.dyno_type))
+
     updated_manager_fields =
       manager
       |> inspect_log("scaling before")
@@ -44,10 +53,10 @@ defmodule Dynomizer.HireFire do
   Return the list of application names from HireFire.
   """
   def applications do
-    Napper.api_client
-    |> Application.list
-    |> Enum.map(&(&1.name))
-    |> Enum.sort
+    Napper.api_client()
+    |> Application.list()
+    |> Enum.map(& &1.name)
+    |> Enum.sort()
   end
 
   @doc """
@@ -57,27 +66,30 @@ defmodule Dynomizer.HireFire do
   past.
   """
   def snapshot(application) do
-    client = Napper.api_client
-    app = client |> Application.list |> Enum.find(&(&1.name == application))
+    client = Napper.api_client()
+    app = client |> Application.list() |> Enum.find(&(&1.name == application))
+
     at =
       %{NaiveDateTime.utc_now() | microsecond: {0, 0}}
       |> NaiveDateTime.add(-@one_day_in_seconds)
-      |> NaiveDateTime.to_string
+      |> NaiveDateTime.to_string()
+
     client
-    |> Manager.list
+    |> Manager.list()
     |> Enum.filter(&(&1.application_id == app.id))
-    |> Enum.map(&(schedule_from_manager(&1, application, at)))
+    |> Enum.map(&schedule_from_manager(&1, application, at))
   end
 
   # Given a HireFire Manager struct, return a HirefireSchedule.
   defp schedule_from_manager(mgr, application, at) do
     nps =
-      NP.numeric_parameter_names
+      NP.numeric_parameter_names()
       |> Enum.map(fn n ->
-           val = Map.get(mgr, n, nil)
-           %NP{name: to_string(n), rule: to_string(val), min: nil, max: nil}
-         end)
+        val = Map.get(mgr, n, nil)
+        %NP{name: to_string(n), rule: to_string(val), min: nil, max: nil}
+      end)
       |> Enum.filter(fn np -> np.rule != "" end)
+
     %HS{
       application: application,
       dyno_type: mgr.name,
@@ -101,7 +113,7 @@ defmodule Dynomizer.HireFire do
   end
 
   defp inspect_log(thing, msg) do
-    Logger.info("#{msg}: #{inspect thing}")
+    Logger.info("#{msg}: #{inspect(thing)}")
     thing
   end
 
@@ -118,31 +130,34 @@ defmodule Dynomizer.HireFire do
         new_numeric_vals =
           schedule.numeric_parameters
           |> Enum.map(fn np ->
-               key = String.to_atom(np.name)
-               current_val = Map.get(manager, key)
-               {key, Rule.apply(np.rule, np.min, np.max, current_val)}
-             end)
-        |> Enum.into(%{})
+            key = String.to_atom(np.name)
+            current_val = Map.get(manager, key)
+            {key, Rule.apply(np.rule, np.min, np.max, current_val)}
+          end)
+          |> Enum.into(%{})
 
         %{manager | type: schedule.manager_type}
         |> Map.merge(Map.drop(schedule, @ignore_fields))
         |> Map.merge(new_numeric_vals)
-        |> Map.take(Manager.updatable_fields[schedule.manager_type])
+        |> Map.take(Manager.updatable_fields()[schedule.manager_type])
+
       errors ->
         Enum.map(errors, fn {name, msg} ->
           Logger.error("schedule #{schedule.id} #{name}: #{msg}")
         end)
+
         manager
     end
   end
 
   defp inapplicable_params(%Manager{type: t}, %HS{manager_type: t}), do: []
+
   defp inapplicable_params(manager, schedule) do
     schedule.numeric_parameters
     |> Enum.filter(fn np ->
       key = String.to_atom(np.name)
       manager[key] == nil && !Rule.absolute?(np.rule)
     end)
-    |> Enum.map(&({&1.name, @inapplicable_error}))
+    |> Enum.map(&{&1.name, @inapplicable_error})
   end
 end
